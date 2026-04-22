@@ -31,14 +31,7 @@ def sf(val):
 
 @app.route("/")
 def index():
-    try:
-        return render_template("index.html")
-    except Exception as e:
-        import os
-        base = os.path.dirname(os.path.abspath(__file__))
-        tpl = os.path.join(base, "templates", "index.html")
-        exists = os.path.exists(tpl)
-        return f"Error: {e}<br>Base: {base}<br>Template exists: {exists}", 500
+    return render_template("index.html")
 
 
 # ============================================================================
