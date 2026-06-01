@@ -419,6 +419,10 @@ def fetch_institutional_data():
 #  基本面指標：本益比、殖利率、股價淨值比、發行股數
 # ============================================================================
 
+# Module-level「今日失敗」標記：避免 worker 反覆 retry 已掛掉的 API
+# app.py 的 /api/screen 入口會單線程預載這四個資料源，失敗就標記今日不再嘗試
+_fetch_failed_today = {}  # {key: date_str}
+
 def fetch_basic_indicators():
     """
     抓 BWIBBU_ALL：本益比、殖利率、股價淨值比（全部上市）。
@@ -428,6 +432,10 @@ def fetch_basic_indicators():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     cache_file = os.path.join(CACHE_DIR, "basic_indicators.json")
     today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # 今日已抓失敗 → 直接回空，不再重試（避免 Render 上反覆 timeout）
+    if _fetch_failed_today.get('basic') == today_str:
+        return {}
 
     if os.path.exists(cache_file):
         try:
@@ -481,6 +489,8 @@ def fetch_basic_indicators():
                 json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
         except Exception:
             pass
+    else:
+        _fetch_failed_today['basic'] = today_str  # 標記今日失敗，後續 worker 不再 retry
     return result
 
 
@@ -494,6 +504,10 @@ def fetch_company_capital():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     cache_file = os.path.join(CACHE_DIR, "company_capital.json")
     today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # 今日已抓失敗 → 直接回空
+    if _fetch_failed_today.get('capital') == today_str:
+        return {}
 
     if os.path.exists(cache_file):
         try:
@@ -537,6 +551,8 @@ def fetch_company_capital():
                 json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
         except Exception:
             pass
+    else:
+        _fetch_failed_today['capital'] = today_str
     return result
 
 
@@ -554,6 +570,10 @@ def fetch_institutional_history(days=5):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     cache_file = os.path.join(CACHE_DIR, f"inst_hist_{days}.json")
     today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # 今日已抓失敗 → 直接回空
+    if _fetch_failed_today.get('inst_hist') == today_str:
+        return {}
 
     if os.path.exists(cache_file):
         try:
@@ -643,6 +663,8 @@ def fetch_institutional_history(days=5):
                 json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
         except Exception:
             pass
+    else:
+        _fetch_failed_today['inst_hist'] = today_str
     return result
 
 
@@ -655,6 +677,10 @@ def fetch_margin_data():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     cache_file = os.path.join(CACHE_DIR, "margin.json")
     today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # 今日已抓失敗 → 直接回空
+    if _fetch_failed_today.get('margin') == today_str:
+        return {}
 
     if os.path.exists(cache_file):
         try:
@@ -702,6 +728,8 @@ def fetch_margin_data():
                 json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
         except Exception:
             pass
+    else:
+        _fetch_failed_today['margin'] = today_str
     return result
 
 
