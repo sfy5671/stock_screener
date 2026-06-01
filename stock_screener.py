@@ -416,6 +416,292 @@ def fetch_institutional_data():
 
 
 # ============================================================================
+#  基本面指標：本益比、殖利率、股價淨值比、發行股數
+# ============================================================================
+
+def fetch_basic_indicators():
+    """
+    抓 BWIBBU_ALL：本益比、殖利率、股價淨值比（全部上市）。
+    回傳 {code: {pe, yield, pb}}
+    """
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    cache_file = os.path.join(CACHE_DIR, "basic_indicators.json")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if cached.get("date") == today_str and cached.get("data"):
+                return cached["data"]
+        except Exception:
+            pass
+
+    result = {}
+    try:
+        url = "https://openapi.twse.com.tw/v1/exchangeReport/BWIBBU_ALL"
+        r = requests.get(url, timeout=15, verify=False)
+        for item in r.json():
+            code = str(item.get("Code", "")).strip()
+            if not code or len(code) != 4 or not code.isdigit():
+                continue
+            try:
+                pe = float(item.get("PEratio") or 0) or None
+                yld = float(item.get("DividendYield") or 0) or None
+                pb = float(item.get("PBratio") or 0) or None
+            except (ValueError, TypeError):
+                pe = yld = pb = None
+            result[code] = {"pe": pe, "yield": yld, "pb": pb}
+    except Exception:
+        pass
+
+    # 上櫃：本益比殖利率股價淨值比
+    try:
+        url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_peratio_analysis"
+        r = requests.get(url, timeout=15, verify=False)
+        for item in r.json():
+            code = str(item.get("SecuritiesCompanyCode", "")).strip()
+            if not code or len(code) != 4 or not code.isdigit():
+                continue
+            try:
+                pe = float(item.get("PriceEarningRatio") or 0) or None
+                yld = float(item.get("DividendPerShare") or 0) or None
+                pb = float(item.get("PriceBookRatio") or 0) or None
+            except (ValueError, TypeError):
+                pe = yld = pb = None
+            if code not in result:
+                result[code] = {"pe": pe, "yield": yld, "pb": pb}
+    except Exception:
+        pass
+
+    if result:
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
+        except Exception:
+            pass
+    return result
+
+
+def fetch_company_capital():
+    """
+    從上市/上櫃公司基本資料抓「實收資本額」，台股面額10元 → 發行股數 = 資本額/10。
+    回傳 {code: {capital_yuan, shares_outstanding}}
+    這個資料變動慢，快取一週。
+    """
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    cache_file = os.path.join(CACHE_DIR, "company_capital.json")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            cached_date = datetime.strptime(cached.get("date", "1970-01-01"), "%Y-%m-%d")
+            if (datetime.now() - cached_date).days < 7 and cached.get("data"):
+                return cached["data"]
+        except Exception:
+            pass
+
+    result = {}
+    # 上市公司基本資料
+    for url in (
+        "https://openapi.twse.com.tw/v1/opendata/t187ap03_L",
+        "https://openapi.twse.com.tw/v1/opendata/t187ap03_O",
+    ):
+        try:
+            r = requests.get(url, timeout=15, verify=False)
+            for item in r.json():
+                code = str(item.get("公司代號", "")).strip()
+                if not code or len(code) != 4 or not code.isdigit():
+                    continue
+                try:
+                    cap = float(str(item.get("實收資本額(元)", "0")).replace(",", ""))
+                except (ValueError, TypeError):
+                    continue
+                if cap <= 0:
+                    continue
+                shares = cap / 10  # 面額10元
+                result[code] = {
+                    "capital_yuan": cap,
+                    "shares_outstanding": shares,
+                }
+        except Exception:
+            continue
+
+    if result:
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
+        except Exception:
+            pass
+    return result
+
+
+# ============================================================================
+#  連續法人買超 (近 N 日累計) + 融資融券
+# ============================================================================
+
+def fetch_institutional_history(days=5):
+    """
+    抓近 N 個交易日的 T86 法人買賣超，回傳每檔股票的：
+    - 連續買超天數 (foreign_consec, trust_consec)
+    - N 日累計 (foreign_cum_n, trust_cum_n)
+    """
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    cache_file = os.path.join(CACHE_DIR, f"inst_hist_{days}.json")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if cached.get("date") == today_str and cached.get("data"):
+                return cached["data"]
+        except Exception:
+            pass
+
+    # 抓近 days*2 個日曆日（避開假日），保留有資料的 days 天
+    daily_data = []  # list of {code: (foreign, trust)}
+    d = datetime.now()
+    fetched_days = 0
+    tries = 0
+    while fetched_days < days and tries < days * 3:
+        tries += 1
+        if d.weekday() >= 5:
+            d -= timedelta(days=1)
+            continue
+        date_str = d.strftime("%Y%m%d")
+        try:
+            url = f"https://www.twse.com.tw/fund/T86?response=json&date={date_str}&selectType=ALL"
+            r = requests.get(url, timeout=12, verify=False)
+            data = r.json()
+            rows = data.get("data") or []
+            if not rows:
+                d -= timedelta(days=1)
+                continue
+            day_map = {}
+            for row in rows:
+                code = str(row[0]).strip()
+                if len(code) != 4 or not code.isdigit():
+                    continue
+                try:
+                    foreign = int(str(row[4]).replace(",", ""))
+                    trust = int(str(row[10]).replace(",", ""))
+                except (ValueError, IndexError):
+                    continue
+                day_map[code] = (foreign, trust)
+            if day_map:
+                daily_data.append(day_map)
+                fetched_days += 1
+        except Exception:
+            pass
+        d -= timedelta(days=1)
+
+    # 計算連續+累計（daily_data[0] = 最新一日）
+    result = {}
+    all_codes = set()
+    for dm in daily_data:
+        all_codes.update(dm.keys())
+    for code in all_codes:
+        foreign_cum = 0
+        trust_cum = 0
+        foreign_consec = 0
+        trust_consec = 0
+        foreign_streak_alive = True
+        trust_streak_alive = True
+        for dm in daily_data:
+            f, t = dm.get(code, (0, 0))
+            foreign_cum += f
+            trust_cum += t
+            if foreign_streak_alive and f > 0:
+                foreign_consec += 1
+            else:
+                foreign_streak_alive = False
+            if trust_streak_alive and t > 0:
+                trust_consec += 1
+            else:
+                trust_streak_alive = False
+        result[code] = {
+            "foreign_cum": foreign_cum,
+            "trust_cum": trust_cum,
+            "foreign_consec": foreign_consec,
+            "trust_consec": trust_consec,
+            "days": len(daily_data),
+        }
+
+    if result:
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
+        except Exception:
+            pass
+    return result
+
+
+def fetch_margin_data():
+    """
+    抓融資融券當日餘額（上市 MI_MARGN）。
+    回傳 {code: {margin_buy, margin_sell, margin_balance, short_balance}}
+    """
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    cache_file = os.path.join(CACHE_DIR, "margin.json")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            if cached.get("date") == today_str and cached.get("data"):
+                return cached["data"]
+        except Exception:
+            pass
+
+    result = {}
+    try:
+        today_tw = datetime.now().strftime("%Y%m%d")
+        url = f"https://www.twse.com.tw/exchangeReport/MI_MARGN?response=json&date={today_tw}&selectType=ALL"
+        r = requests.get(url, timeout=15, verify=False)
+        data = r.json()
+        # data["data"]: [代號, 名稱, 融資買, 融資賣, 現金償還, 前日融資餘額, 今日融資餘額, 限額,
+        #                 融券買, 融券賣, 現券償還, 前日融券餘額, 今日融券餘額, 限額, 註記]
+        for row in data.get("data", []):
+            try:
+                code = str(row[0]).strip()
+                if len(code) != 4 or not code.isdigit():
+                    continue
+                mg_buy = int(str(row[2]).replace(",", "") or 0)
+                mg_sell = int(str(row[3]).replace(",", "") or 0)
+                mg_prev = int(str(row[5]).replace(",", "") or 0)
+                mg_today = int(str(row[6]).replace(",", "") or 0)
+                sh_today = int(str(row[12]).replace(",", "") or 0)
+                result[code] = {
+                    "margin_buy": mg_buy,
+                    "margin_sell": mg_sell,
+                    "margin_prev": mg_prev,
+                    "margin_balance": mg_today,
+                    "margin_change": mg_today - mg_prev,
+                    "short_balance": sh_today,
+                }
+            except (ValueError, IndexError):
+                continue
+    except Exception:
+        pass
+
+    if result:
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"date": today_str, "data": result}, f, ensure_ascii=False)
+        except Exception:
+            pass
+    return result
+
+
+# ============================================================================
 #  篩選策略（基本7大 - 飆股模式）
 # ============================================================================
 
@@ -843,18 +1129,73 @@ def strategy_swing_breakout_close(df, **kw):
 
 
 # ============================================================================
+#  真飆股策略（v3.1 強化版）
+# ============================================================================
+
+def strategy_turnover_active(df, code=None, **kw):
+    """換手率活躍 3~25% - 飆股甜蜜區（活躍但未過熱）"""
+    if not code:
+        return False
+    cap = fetch_company_capital().get(code)
+    if not cap or not cap.get("shares_outstanding"):
+        return False
+    today_vol = df['Volume'].iloc[-1]
+    turnover = today_vol / cap["shares_outstanding"] * 100
+    return 3 <= turnover <= 25
+
+def strategy_bias_strong(df, **kw):
+    """乖離率(MA20) 強勢未過熱 - +0~15%（飆股啟動到主升段）"""
+    close = df['Close']
+    ma20 = calc_ma(close, 20).iloc[-1]
+    if ma20 <= 0:
+        return False
+    bias = (close.iloc[-1] - ma20) / ma20 * 100
+    return 0 < bias <= 15
+
+def strategy_inst_consecutive_buy(df, code=None, **kw):
+    """連續法人買超 ≥ 3 日（外資或投信）"""
+    if not code:
+        return False
+    hist = fetch_institutional_history(5).get(code)
+    if not hist:
+        return False
+    return hist["foreign_consec"] >= 3 or hist["trust_consec"] >= 3
+
+def strategy_breakout_20d_high(df, **kw):
+    """爆量突破 20 日新高 - 收盤創 20 日新高 + 量>20日均量1.5x"""
+    if len(df) < 21:
+        return False
+    close = df['Close']
+    vol = df['Volume']
+    past_high = close.iloc[-21:-1].max()
+    new_high = close.iloc[-1] > past_high
+    avg_vol = vol.rolling(20).mean().iloc[-1]
+    vol_ok = vol.iloc[-1] > avg_vol * 1.5 if avg_vol > 0 else False
+    return new_high and vol_ok
+
+def strategy_volume_expanding(df, **kw):
+    """量能持續放大 - 5日均量 > 20日均量 1.5 倍"""
+    vol = df['Volume']
+    if len(vol) < 20:
+        return False
+    avg5 = vol.rolling(5).mean().iloc[-1]
+    avg20 = vol.rolling(20).mean().iloc[-1]
+    return avg5 > avg20 * 1.5 if avg20 > 0 else False
+
+
+# ============================================================================
 #  策略字典（五種模式）
 # ============================================================================
 
-# === 飆股模式：追漲動能 ===
+# === 飆股模式 v3.1：真飆股特徵（換手率+乖離+法人連續+底部突破+量能放大）===
 MOMENTUM_STRATEGIES = {
-    "均線多頭排列": strategy_ma_bullish,
-    "站上所有均線": strategy_above_all_ma,
-    "KD黃金交叉":  strategy_kd_golden_cross,
-    "MACD翻多":    strategy_macd_bullish,
-    "RSI強勢區間":  strategy_rsi_strong,
-    "爆量突破":     strategy_volume_breakout,
-    "布林上軌突破":  strategy_bollinger_breakout,
+    "均線多頭排列":      strategy_ma_bullish,
+    "站上20日均線":      strategy_above_all_ma,
+    "換手率3-25%":       strategy_turnover_active,
+    "乖離率MA20強勢":    strategy_bias_strong,
+    "連續法人買超3日":   strategy_inst_consecutive_buy,
+    "爆量突破20日高":    strategy_breakout_20d_high,
+    "量能持續放大":      strategy_volume_expanding,
 }
 
 # === 高勝率模式：均值回歸+法人共識 ===
@@ -1341,6 +1682,26 @@ def calc_score_and_details(df, mode="momentum", code=None,
     if len(close) >= 20:
         month_change = (close.iloc[-1] - close.iloc[-20]) / close.iloc[-20] * 100
 
+    # 乖離率
+    bias_20 = (price - ma20) / ma20 * 100 if ma20 > 0 else 0
+    bias_60 = (price - ma60) / ma60 * 100 if ma60 > 0 else 0
+
+    # 換手率（需發行股數）
+    turnover_rate = None
+    cap_info = fetch_company_capital().get(code) if code else None
+    if cap_info and cap_info.get("shares_outstanding"):
+        turnover_rate = today_vol / cap_info["shares_outstanding"] * 100
+    capital_mil = (cap_info["capital_yuan"] / 1_000_000) if cap_info else None
+
+    # 基本面指標
+    basic = fetch_basic_indicators().get(code, {}) if code else {}
+
+    # 連續法人買超 + 累計
+    hist = fetch_institutional_history(5).get(code, {}) if code else {}
+
+    # 融資融券
+    margin = fetch_margin_data().get(code, {}) if code else {}
+
     details = {
         "price": price,
         "change_pct": change_pct,
@@ -1361,6 +1722,21 @@ def calc_score_and_details(df, mode="momentum", code=None,
         "ma10": ma10,
         "ma20": ma20,
         "ma60": ma60,
+        # v3.1 新增：飆股關鍵指標
+        "turnover_rate": turnover_rate,    # 換手率 %
+        "bias_20": bias_20,                # 乖離率 MA20 %
+        "bias_60": bias_60,                # 乖離率 MA60 %
+        "capital_mil": capital_mil,        # 股本(百萬元)
+        "pe": basic.get("pe"),
+        "yield": basic.get("yield"),
+        "pb": basic.get("pb"),
+        "foreign_consec": hist.get("foreign_consec", 0),
+        "trust_consec": hist.get("trust_consec", 0),
+        "foreign_cum_5d": hist.get("foreign_cum", 0),
+        "trust_cum_5d": hist.get("trust_cum", 0),
+        "margin_balance": margin.get("margin_balance", 0),
+        "margin_change": margin.get("margin_change", 0),
+        "short_balance": margin.get("short_balance", 0),
     }
 
     # 計算總分

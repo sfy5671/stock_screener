@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飆股篩選器 - 手機安裝方式</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#0a0e1a;color:#e8e0d0;font-family:'Noto Serif TC',serif;font-size:16px;line-height:1.8}
+.container{max-width:900px;margin:0 auto;padding:40px 24px 80px}
+h1{color:#d4a44a;border-left:4px solid #d4a44a;padding-left:12px;font-size:2rem;margin:40px 0 24px}
+h2{color:#e8c87c;border-left:4px solid #d4a44a;padding-left:12px;font-size:1.4rem;margin:36px 0 16px}
+h3{color:#e8c87c;border-left:4px solid #d4a44a;padding-left:12px;font-size:1.1rem;margin:28px 0 12px}
+p{margin-bottom:14px}
+ul,ol{padding-left:24px;margin-bottom:14px}
+li{margin-bottom:6px}
+a{color:#d4a44a;text-decoration:none}
+a:hover{text-decoration:underline}
+strong{color:#e8c87c;font-weight:700}
+hr{border:none;border-top:1px solid #2a3450;margin:32px 0}
+pre{background:#1a2235;border-left:3px solid #d4a44a;padding:16px 20px;overflow-x:auto;border-radius:4px;margin-bottom:16px}
+code{font-family:'Courier New',monospace;font-size:.9em}
+pre code{color:#e8e0d0}
+p code,li code,td code{background:#1a2235;padding:2px 6px;border-radius:3px;color:#e8a87c}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;display:block;overflow-x:auto}
+thead tr{background:#d4a44a}
+thead th{color:#0a0e1a;padding:10px 14px;text-align:left;font-weight:700}
+tbody tr:nth-child(odd){background:#12182a}
+tbody tr:nth-child(even){background:#0e1422}
+tbody tr:hover{background:#1e2a42}
+tbody td{padding:9px 14px;border-bottom:1px solid #2a3450}
+blockquote{border-left:3px solid #d4a44a;padding:10px 16px;background:#12182a;margin:16px 0;color:#c8c0b0}
+em{color:#b0a890;font-style:italic}
+.back-to-top{position:fixed;bottom:28px;right:28px;background:#d4a44a;color:#0a0e1a;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:700;text-decoration:none;display:inline-block;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.back-to-top:hover{background:#e8b85a;text-decoration:none}
+@media(max-width:600px){h1{font-size:1.4rem}h2{font-size:1.15rem}.container{padding:24px 14px 60px}}
+@media print{body{background:#fff;color:#000}.back-to-top{display:none}h1,h2,h3{color:#000;border-left-color:#000}pre,blockquote{background:#f5f5f5}a{color:#000}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>飆股篩選器 - 手機安裝方式</h1>
+
+<h2>方法一：PWA 安裝（推薦，最簡單）</h2>
+
+<ol>
+<li>手機與電腦連同一個 WiFi</li>
+<li>電腦執行 <code>python app.py</code></li>
+<li>手機瀏覽器開啟 <code>http://你的電腦IP:5000</code></li>
+<li><strong>Android Chrome</strong>: 右上角選單 → 加入主畫面</li>
+<li><strong>iPhone Safari</strong>: 分享按鈕 → 加入主畫面</li>
+</ol>
+
+<p>優點：不需要打包，隨時跟電腦同步更新</p>
+
+<hr>
+
+<h2>方法二：APK 打包（Android 專用）</h2>
+
+<h3>步驟一：安裝 Node.js</h3>
+<p>到 <a href="https://nodejs.org" target="_blank">https://nodejs.org</a> 下載安裝 LTS 版本</p>
+
+<h3>步驟二：安裝 Bubblewrap</h3>
+<pre><code class="language-bash">npm install -g @aspect-build/aspect-cli @nicolo-ribaudo/chokidar-2
+npm install -g @nicolo-ribaudo/chokidar-2
+npm install -g @nicolo-ribaudo/chokidar-2</code></pre>
+
+<h3>使用 TWA（Trusted Web Activity）方式</h3>
+<p>最簡單的方式是用 TWA 將 PWA 包成 APK：</p>
+
+<ol>
+<li>確保你的網站可以從手機存取（用 ngrok 或內網 IP）</li>
+<li>使用 PWABuilder 線上工具</li>
+<li>或用以下步驟手動打包</li>
+</ol>
+
+<h3>最簡單的方式：用 PWABuilder</h3>
+<ol>
+<li>開啟 <a href="https://www.pwabuilder.com/" target="_blank">https://www.pwabuilder.com/</a></li>
+<li>輸入你的網站網址</li>
+<li>點擊「Package for stores」→ Android</li>
+<li>下載 APK 檔案</li>
+</ol>
+
+<h3>注意事項</h3>
+<ul>
+<li>APK 只是個瀏覽器殼，實際資料還是從電腦伺服器取得</li>
+<li>電腦必須開著 <code>python app.py</code> 才能使用</li>
+<li>如果要讓外網也能用，可以用 ngrok 將本機服務暴露到公網</li>
+</ul>
+
+</div>
+<a href="#" class="back-to-top">回頂部</a>
+</body>
+</html>
