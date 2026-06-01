@@ -113,6 +113,17 @@ def screen_stocks():
     if not stock_list:
         return jsonify({"error": "請至少加入一檔股票"}), 400
 
+    # 預載 v3.1 新資料源（單線程一次抓完，避免 worker race timeout）
+    # 失敗時各函式內部都會 return {} 不阻塞
+    try: ss.fetch_basic_indicators()
+    except Exception: pass
+    try: ss.fetch_company_capital()
+    except Exception: pass
+    try: ss.fetch_institutional_history(5)
+    except Exception: pass
+    try: ss.fetch_margin_data()
+    except Exception: pass
+
     # --- 單檔分析函式（給線程池用） ---
     def analyze_one(item):
         code = str(item.get("code", "")).strip()

@@ -441,7 +441,7 @@ def fetch_basic_indicators():
     result = {}
     try:
         url = "https://openapi.twse.com.tw/v1/exchangeReport/BWIBBU_ALL"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=8, verify=False)
         for item in r.json():
             code = str(item.get("Code", "")).strip()
             if not code or len(code) != 4 or not code.isdigit():
@@ -459,7 +459,7 @@ def fetch_basic_indicators():
     # 上櫃：本益比殖利率股價淨值比
     try:
         url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_peratio_analysis"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=8, verify=False)
         for item in r.json():
             code = str(item.get("SecuritiesCompanyCode", "")).strip()
             if not code or len(code) != 4 or not code.isdigit():
@@ -512,7 +512,7 @@ def fetch_company_capital():
         "https://openapi.twse.com.tw/v1/opendata/t187ap03_O",
     ):
         try:
-            r = requests.get(url, timeout=15, verify=False)
+            r = requests.get(url, timeout=8, verify=False)
             for item in r.json():
                 code = str(item.get("公司代號", "")).strip()
                 if not code or len(code) != 4 or not code.isdigit():
@@ -569,7 +569,11 @@ def fetch_institutional_history(days=5):
     d = datetime.now()
     fetched_days = 0
     tries = 0
+    overall_start = time.time()
     while fetched_days < days and tries < days * 3:
+        # 整體 hard timeout：超過 25 秒就放棄，避免 Render worker 卡死
+        if time.time() - overall_start > 25:
+            break
         tries += 1
         if d.weekday() >= 5:
             d -= timedelta(days=1)
@@ -577,7 +581,7 @@ def fetch_institutional_history(days=5):
         date_str = d.strftime("%Y%m%d")
         try:
             url = f"https://www.twse.com.tw/fund/T86?response=json&date={date_str}&selectType=ALL"
-            r = requests.get(url, timeout=12, verify=False)
+            r = requests.get(url, timeout=6, verify=False)
             data = r.json()
             rows = data.get("data") or []
             if not rows:
@@ -665,7 +669,7 @@ def fetch_margin_data():
     try:
         today_tw = datetime.now().strftime("%Y%m%d")
         url = f"https://www.twse.com.tw/exchangeReport/MI_MARGN?response=json&date={today_tw}&selectType=ALL"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=8, verify=False)
         data = r.json()
         # data["data"]: [代號, 名稱, 融資買, 融資賣, 現金償還, 前日融資餘額, 今日融資餘額, 限額,
         #                 融券買, 融券賣, 現券償還, 前日融券餘額, 今日融券餘額, 限額, 註記]
