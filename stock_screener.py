@@ -532,7 +532,9 @@ def fetch_company_capital():
                 if not code or len(code) != 4 or not code.isdigit():
                     continue
                 try:
-                    cap = float(str(item.get("實收資本額(元)", "0")).replace(",", ""))
+                    # 證交所實際欄位是「實收資本額」（不是「實收資本額(元)」）
+                    raw_cap = item.get("實收資本額") or item.get("實收資本額(元)") or "0"
+                    cap = float(str(raw_cap).replace(",", ""))
                 except (ValueError, TypeError):
                     continue
                 if cap <= 0:
@@ -692,14 +694,37 @@ def fetch_margin_data():
             pass
 
     result = {}
+    # 往前找最近有資料的交易日（今天可能盤前還沒更新；最多回溯 7 天）
+    # 新版 MI_MARGN 把個股融資融券放在 tables[1].data（不是舊版的 data 欄位）
+    d = datetime.now()
+    rows = []
+    for back in range(7):
+        if d.weekday() >= 5:  # 跳過週末
+            d -= timedelta(days=1)
+            continue
+        date_str = d.strftime("%Y%m%d")
+        try:
+            url = f"https://www.twse.com.tw/exchangeReport/MI_MARGN?response=json&date={date_str}&selectType=ALL"
+            r = requests.get(url, timeout=8, verify=False)
+            data = r.json()
+            tables = data.get("tables") or []
+            # 找含「融資融券彙總」標題的 table（通常是最後一個）
+            for t in tables:
+                if "融資融券" in (t.get("title") or "") and t.get("data"):
+                    rows = t["data"]
+                    break
+            # fallback：舊版 data 欄位
+            if not rows:
+                rows = data.get("data") or []
+            if rows:
+                break
+        except Exception:
+            pass
+        d -= timedelta(days=1)
     try:
-        today_tw = datetime.now().strftime("%Y%m%d")
-        url = f"https://www.twse.com.tw/exchangeReport/MI_MARGN?response=json&date={today_tw}&selectType=ALL"
-        r = requests.get(url, timeout=8, verify=False)
-        data = r.json()
-        # data["data"]: [代號, 名稱, 融資買, 融資賣, 現金償還, 前日融資餘額, 今日融資餘額, 限額,
-        #                 融券買, 融券賣, 現券償還, 前日融券餘額, 今日融券餘額, 限額, 註記]
-        for row in data.get("data", []):
+        # rows: [代號, 名稱, 融資買, 融資賣, 融資現金償還, 融資前日餘額, 融資今日餘額, 融資限額,
+        #         融券買, 融券賣, 融券現券償還, 融券前日餘額, 融券今日餘額, 融券限額, 資券互抵, 註記]
+        for row in rows:
             try:
                 code = str(row[0]).strip()
                 if len(code) != 4 or not code.isdigit():
