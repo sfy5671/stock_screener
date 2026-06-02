@@ -455,6 +455,10 @@ tailwind.config = {
         <button data-p="1wk" class="period-btn px-3 py-1.5 text-xs rounded-md border border-dim text-textm hover:bg-card2">週K</button>
       </div>
     </div>
+    <!-- 公司基本資訊 -->
+    <div id="companyInfoBox" class="hidden bg-card2/30 border border-dim rounded-xl p-3 mb-3 text-xs">
+      <div id="companyInfoGrid" class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2"></div>
+    </div>
     <div class="flex flex-wrap items-center gap-3 text-xs mb-3 py-2 border-y border-dim/40">
       <span class="text-textl">均線:</span>
       <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="showMA5" checked onchange="toggleMA()"> <span style="color:#ff6d00">MA5</span></label>
@@ -1006,6 +1010,7 @@ function renderCards(results) {
             <div class="flex items-center gap-2 mb-1 flex-wrap">
               <span class="text-lg font-bold text-textd">${r.name}</span>
               <span class="num text-xs text-gold">${r.code}</span>
+              ${r.industry?`<span class="text-[10px] px-1.5 py-0.5 rounded bg-card2 text-textm border border-dim">${r.industry}</span>`:''}
               ${hot?'<span class="text-[10px] font-bold bg-rise/20 text-rise px-2 py-0.5 rounded">HOT</span>':''}
               <button onclick="event.stopPropagation();toggleFavorite('${r.code}','${r.name.replace(/'/g, '&#39;')}',this)" class="ml-auto text-base px-1 leading-none ${isFav?'text-gold':'text-textl'} hover:text-gold transition" title="${isFav?'移除收藏':'加入收藏'}">${isFav?'★':'☆'}</button>
             </div>
@@ -1075,6 +1080,7 @@ async function loadChartForCode(code, name, period) {
   document.getElementById('chartCard').style.display = 'block';
   document.getElementById('chartTitle').textContent = currentChartName
     ? `${currentChartName} (${code})` : code;
+  loadCompanyInfo(code);
   document.querySelectorAll('#chartPeriods .period-btn').forEach(b => {
     const active = b.dataset.p === period;
     b.classList.toggle('active', active);
@@ -1136,6 +1142,37 @@ function reloadModalChart() {
     wrap.appendChild(cDiv); wrap.appendChild(vDiv);
     renderFullChart(cDiv, vDiv, modalData, 'modal');
   }
+}
+
+async function loadCompanyInfo(code) {
+  const box = document.getElementById('companyInfoBox');
+  const grid = document.getElementById('companyInfoGrid');
+  if (!box || !grid) return;
+  box.classList.add('hidden');
+  try {
+    const r = await fetch(`/api/company-info/${code}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const items = [];
+    if (d.industry) items.push(['產業別', `<span class="text-gold font-semibold">${d.industry}</span>`]);
+    if (d.listed_date) {
+      const dt = d.listed_date;
+      const formatted = (dt.length === 8) ? `${dt.slice(0,4)}-${dt.slice(4,6)}-${dt.slice(6,8)}` : dt;
+      items.push(['上市日期', formatted]);
+    }
+    if (d.capital_mil) items.push(['股本', `${(d.capital_mil/100).toFixed(1)} 億元`]);
+    if (d.pe) items.push(['本益比', d.pe.toFixed(1)]);
+    if (d.yield) items.push(['殖利率', d.yield.toFixed(2) + '%']);
+    if (d.pb) items.push(['股價淨值比', d.pb.toFixed(2)]);
+    if (d.chairman) items.push(['董事長', d.chairman]);
+    if (d.website) {
+      const url = d.website.startsWith('http') ? d.website : 'https://' + d.website;
+      items.push(['公司網址', `<a href="${url}" target="_blank" class="text-gold hover:underline">${d.website}</a>`]);
+    }
+    if (!items.length) return;
+    grid.innerHTML = items.map(([l,v]) => `<div><span class="text-textl">${l}：</span><span class="text-textd">${v}</span></div>`).join('');
+    box.classList.remove('hidden');
+  } catch(e) {}
 }
 
 function goToChart(code, name) {

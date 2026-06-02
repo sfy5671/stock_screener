@@ -40,6 +40,26 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.route("/api/company-info/<code>")
+def company_info(code):
+    """單一股票的公司基本資料（產業/上市日期/網址/董事長等）"""
+    info = ss.fetch_company_capital().get(code, {})
+    basic = ss.fetch_basic_indicators().get(code, {})
+    return jsonify({
+        "code": code,
+        "industry": info.get("industry"),
+        "short_name": info.get("short_name"),
+        "listed_date": info.get("listed_date"),
+        "founded_date": info.get("founded_date"),
+        "website": info.get("website"),
+        "chairman": info.get("chairman"),
+        "capital_mil": (info["capital_yuan"] / 1_000_000) if info.get("capital_yuan") else None,
+        "pe": basic.get("pe"),
+        "yield": basic.get("yield"),
+        "pb": basic.get("pb"),
+    })
+
+
 # ============================================================================
 #  API: 股票清單
 # ============================================================================
@@ -192,6 +212,12 @@ def screen_stocks():
             "bias_20": sf(details.get("bias_20")),
             "bias_60": sf(details.get("bias_60")),
             "capital_mil": sf(details.get("capital_mil")),
+            "industry": details.get("industry"),
+            "short_name": details.get("short_name"),
+            "listed_date": details.get("listed_date"),
+            "founded_date": details.get("founded_date"),
+            "website": details.get("website"),
+            "chairman": details.get("chairman"),
             "pe": sf(details.get("pe")),
             "yield": sf(details.get("yield")),
             "pb": sf(details.get("pb")),

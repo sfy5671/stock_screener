@@ -494,10 +494,25 @@ def fetch_basic_indicators():
     return result
 
 
+# 證交所產業分類代碼對照表
+INDUSTRY_NAME = {
+    "01": "水泥工業", "02": "食品工業", "03": "塑膠工業", "04": "紡織纖維",
+    "05": "電機機械", "06": "電器電纜", "08": "玻璃陶瓷", "09": "造紙工業",
+    "10": "鋼鐵工業", "11": "橡膠工業", "12": "汽車工業", "14": "建材營造",
+    "15": "航運業", "16": "觀光餐旅", "17": "金融保險", "18": "貿易百貨",
+    "19": "綜合企業", "20": "其他", "21": "化學工業", "22": "生技醫療",
+    "23": "油電燃氣", "24": "半導體", "25": "電腦週邊", "26": "光電業",
+    "27": "通信網路", "28": "電子零組件", "29": "電子通路", "30": "資訊服務",
+    "31": "其他電子", "32": "文化創意", "33": "農業科技", "34": "電子商務",
+    "35": "綠能環保", "36": "數位雲端", "37": "運動休閒", "38": "居家生活",
+    "80": "管理股票", "91": "存託憑證",
+}
+
+
 def fetch_company_capital():
     """
     從上市/上櫃公司基本資料抓「實收資本額」，台股面額10元 → 發行股數 = 資本額/10。
-    回傳 {code: {capital_yuan, shares_outstanding}}
+    回傳 {code: {capital_yuan, shares_outstanding, industry, short_name, ...}}
     這個資料變動慢，快取一週。
     """
     import urllib3
@@ -540,9 +555,23 @@ def fetch_company_capital():
                 if cap <= 0:
                     continue
                 shares = cap / 10  # 面額10元
+                # 額外的公司基本資訊（產業別、簡稱、上市日期、網址）
+                industry_code = (item.get("產業別") or "").strip()
+                industry = INDUSTRY_NAME.get(industry_code, industry_code) if industry_code else ""
+                short_name = (item.get("公司簡稱") or "").strip()
+                listed_date = (item.get("上市日期") or "").strip()
+                founded_date = (item.get("成立日期") or "").strip()
+                website = (item.get("網址") or "").strip()
+                chairman = (item.get("董事長") or "").strip()
                 result[code] = {
                     "capital_yuan": cap,
                     "shares_outstanding": shares,
+                    "industry": industry,
+                    "short_name": short_name,
+                    "listed_date": listed_date,
+                    "founded_date": founded_date,
+                    "website": website,
+                    "chairman": chairman,
                 }
         except Exception:
             continue
@@ -1749,6 +1778,12 @@ def calc_score_and_details(df, mode="momentum", code=None,
     if cap_info and cap_info.get("shares_outstanding"):
         turnover_rate = today_vol / cap_info["shares_outstanding"] * 100
     capital_mil = (cap_info["capital_yuan"] / 1_000_000) if cap_info else None
+    industry = cap_info.get("industry") if cap_info else None
+    short_name = cap_info.get("short_name") if cap_info else None
+    listed_date = cap_info.get("listed_date") if cap_info else None
+    founded_date = cap_info.get("founded_date") if cap_info else None
+    website = cap_info.get("website") if cap_info else None
+    chairman = cap_info.get("chairman") if cap_info else None
 
     # 基本面指標
     basic = fetch_basic_indicators().get(code, {}) if code else {}
@@ -1784,6 +1819,12 @@ def calc_score_and_details(df, mode="momentum", code=None,
         "bias_20": bias_20,                # 乖離率 MA20 %
         "bias_60": bias_60,                # 乖離率 MA60 %
         "capital_mil": capital_mil,        # 股本(百萬元)
+        "industry": industry,
+        "short_name": short_name,
+        "listed_date": listed_date,
+        "founded_date": founded_date,
+        "website": website,
+        "chairman": chairman,
         "pe": basic.get("pe"),
         "yield": basic.get("yield"),
         "pb": basic.get("pb"),
