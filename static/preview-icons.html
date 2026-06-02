@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飆股篩選器 - App Icon 3 個方向比較</title>
+<style>
+body { background:#0a1628; color:#e2e8f0; font-family:'Noto Sans TC','Inter',sans-serif; margin:0; padding:24px; }
+h1 { background:linear-gradient(90deg,#d4af37,#f5d76e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0 0 8px; }
+.sub { color:#94a3b8; font-size:14px; margin-bottom:32px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:24px; max-width:1200px; margin:0 auto; }
+.card { background:#14233d; border:1px solid #2a3e5e; border-radius:20px; padding:20px; }
+.card h2 { color:#d4af37; margin:0 0 8px; font-size:18px; }
+.card p { color:#94a3b8; font-size:13px; line-height:1.6; margin:0 0 16px; }
+.big-icon { display:block; width:240px; height:240px; margin:8px auto 16px; border-radius:48px; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+.row { display:flex; align-items:center; justify-content:space-around; padding:14px; background:#0a1628; border-radius:12px; }
+.row .item { text-align:center; }
+.row img { display:block; margin:0 auto 4px; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+.row .s60 { width:60px; height:60px; border-radius:14px; }
+.row .s90 { width:90px; height:90px; border-radius:20px; }
+.row .s120 { width:120px; height:120px; border-radius:26px; }
+.row label { font-size:10px; color:#64748b; }
+.tip { background:rgba(212,175,55,.08); border-left:3px solid #d4af37; padding:14px 18px; border-radius:0 12px 12px 0; max-width:1200px; margin:0 auto 32px; font-size:14px; }
+.tip b { color:#d4af37; }
+</style>
+</head>
+<body>
+<h1>飆股篩選器 App Icon - 3 方向比較</h1>
+<p class="sub">看「實際縮小到 60x60 / 90x90 / 120x120 後」哪個還辨識得出來才是好 icon</p>
+<div class="tip">
+<b>挑選原則：</b>App icon 在 home screen 上通常顯示 60-120px，要在這個小尺寸下還能一眼認出。如果縮小後變一團模糊，那設計太複雜了。
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h2>方案 A — 金色 K 線（漸升）</h2>
+<p>4 根金色蠟燭由低到高，最右一根帶光暈。傳統金融工具最直覺的視覺。</p>
+<img src="/static/icon-cand-a.png" alt="A" class="big-icon">
+<div class="row">
+<div class="item"><img src="/static/icon-cand-a.png" class="s60"><label>60×60</label></div>
+<div class="item"><img src="/static/icon-cand-a.png" class="s90"><label>90×90</label></div>
+<div class="item"><img src="/static/icon-cand-a.png" class="s120"><label>120×120</label></div>
+</div>
+</div>
+
+<div class="card">
+<h2>方案 B — 金色上升箭頭</h2>
+<p>抽象金色曲線從左下到右上構成箭頭，極簡有力。最現代、最像國際金融 App。</p>
+<img src="/static/icon-cand-b.png" alt="B" class="big-icon">
+<div class="row">
+<div class="item"><img src="/static/icon-cand-b.png" class="s60"><label>60×60</label></div>
+<div class="item"><img src="/static/icon-cand-b.png" class="s90"><label>90×90</label></div>
+<div class="item"><img src="/static/icon-cand-b.png" class="s120"><label>120×120</label></div>
+</div>
+</div>
+
+<div class="card">
+<h2>方案 C — 金色雷達掃描</h2>
+<p>圓形雷達+掃描線，雷達內亮點表示「掃描到的股票」。最符合「篩選器」概念。</p>
+<img src="/static/icon-cand-c.png" alt="C" class="big-icon">
+<div class="row">
+<div class="item"><img src="/static/icon-cand-c.png" class="s60"><label>60×60</label></div>
+<div class="item"><img src="/static/icon-cand-c.png" class="s90"><label>90×90</label></div>
+<div class="item"><img src="/static/icon-cand-c.png" class="s120"><label>120×120</label></div>
+</div>
+</div>
+
+</div>
+
+<div style="max-width:1200px;margin:32px auto 0;text-align:center;color:#64748b;font-size:13px">
+告訴 Claude 你要 A / B / C，我把它套到 App + 重新打包所有尺寸 + 推上 Render
+</div>
+
+</body>
+</html>
