@@ -404,6 +404,11 @@ tailwind.config = {
       <span>成交量 <b id="futuresVol" class="text-textd">-</b></span>
       <span>時間 <b id="futuresTime" class="text-textd">-</b></span>
     </div>
+    <div class="flex items-center gap-3 text-[10px] text-textl mb-2">
+      <span class="flex items-center gap-1"><span class="inline-block w-3 border-t border-dashed border-textm"></span>加權指數參考</span>
+      <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-gold"></span>台指期實際</span>
+      <span class="ml-auto text-textl/70">期交所無歷史分鐘 K，盤中累積資料</span>
+    </div>
     <div id="futuresChart" style="height:250px"></div>
   </div>
 
@@ -1457,17 +1462,32 @@ async function initMarketCharts() {
   if (!futuresChartInstance) {
     futuresChartInstance = createMiniChart('futuresChart');
     if (futuresChartInstance) {
-      futuresSeries = futuresChartInstance.addLineSeries({color:'#d4af37',lineWidth:2,priceLineVisible:true,lastValueVisible:true});
-      // 期交所無歷史分鐘 K API，借用加權指數 1m 當基底，讓圖一開始就有走勢
-      // 盤中 refreshMarketPage 會以台指期即時點 update（會自然銜接）
+      // 灰色虛線：加權指數當作「市場參考」（期交所無歷史分鐘 K API 的 workaround）
+      const refSeries = futuresChartInstance.addLineSeries({
+        color: 'rgba(148, 163, 184, 0.55)',
+        lineWidth: 1,
+        lineStyle: LightweightCharts.LineStyle.Dashed,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        priceScaleId: 'left',  // 另外一個 price scale 避免和台指期共用
+      });
+      futuresChartInstance.priceScale('left').applyOptions({visible: false});
       try {
         const r = await fetch('/api/chart/t00?period=1m');
         if (r.ok) {
           const d = await r.json();
-          futuresSeries.setData(d.candles.map(c=>({time:c.time,value:c.close})));
+          refSeries.setData(d.candles.map(c=>({time:c.time,value:c.close})));
           futuresChartInstance.timeScale().fitContent();
         }
       } catch(e) {}
+      // 金色實線：台指期實際資料（盤中 update 加入）
+      futuresSeries = futuresChartInstance.addLineSeries({
+        color:'#d4af37',
+        lineWidth:2,
+        priceLineVisible:true,
+        lastValueVisible:true,
+      });
     }
   }
 }
