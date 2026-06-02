@@ -11,6 +11,7 @@
 <title>飆股篩選器 v3.1</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -106,7 +107,8 @@ tailwind.config = {
   <div id="autoRefreshInfo" class="max-w-[1100px] mx-auto px-4 md:px-6 pb-1.5 text-[11px] num text-textm/80 text-right"></div>
   <nav class="border-t border-dim/40">
     <div class="max-w-[1100px] mx-auto px-2 md:px-4 flex">
-      <button onclick="switchTab('screen')" data-tab-btn="screen" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition tab-active">篩選</button>
+      <button onclick="switchTab('dashboard')" data-tab-btn="dashboard" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition tab-active">儀表</button>
+      <button onclick="switchTab('screen')" data-tab-btn="screen" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">篩選</button>
       <button onclick="switchTab('favorites')" data-tab-btn="favorites" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">★ 收藏</button>
       <button onclick="switchTab('market')" data-tab-btn="market" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">大盤</button>
       <button onclick="switchTab('chart')" data-tab-btn="chart" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">K 線</button>
@@ -117,8 +119,64 @@ tailwind.config = {
 
 <main class="max-w-[1100px] mx-auto px-4 md:px-6 pb-12">
 
+<!-- ============ TAB: 儀表板 ============ -->
+<section data-tab-panel="dashboard" class="tab-panel space-y-5">
+
+  <!-- 市場概覽 + 我的收藏 + 最後篩選 結合首頁 -->
+  <div class="bg-card border border-gold/30 rounded-2xl p-5 card-glow">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-semibold flex items-center gap-2">📊 市場速覽</h2>
+      <span id="dashTime" class="text-[10px] text-textl num"></span>
+    </div>
+    <div id="dashMarket" class="grid grid-cols-2 gap-3">
+      <div class="bg-card2/40 rounded-xl p-3 text-center">
+        <div class="text-[10px] text-textl">加權指數</div>
+        <div id="dashTaiex" class="num text-lg font-bold text-textd mt-1">-</div>
+        <div id="dashTaiexChg" class="num text-xs mt-0.5">-</div>
+      </div>
+      <div class="bg-card2/40 rounded-xl p-3 text-center">
+        <div class="text-[10px] text-textl">台指期</div>
+        <div id="dashFutures" class="num text-lg font-bold text-textd mt-1">-</div>
+        <div id="dashFuturesChg" class="num text-xs mt-0.5">-</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的最愛快覽 -->
+  <div class="bg-card border border-dim/60 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-semibold flex items-center gap-2"><span class="text-gold">★</span> 我的最愛</h2>
+      <button onclick="switchTab('favorites')" class="text-xs text-gold hover:underline">查看全部 →</button>
+    </div>
+    <div id="dashFav" class="space-y-2"></div>
+  </div>
+
+  <!-- 最後篩選結果摘要 -->
+  <div class="bg-card border border-dim/60 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-semibold flex items-center gap-2">🎯 最後篩選</h2>
+      <button onclick="switchTab('screen')" class="text-xs text-gold hover:underline">重新篩選 →</button>
+    </div>
+    <div id="dashScreen" class="space-y-2"></div>
+  </div>
+
+  <!-- 快速行動 -->
+  <div class="grid grid-cols-2 gap-3">
+    <button onclick="switchTab('screen')" class="bg-card2 hover:bg-card2/70 border border-dim hover:border-gold/40 rounded-2xl p-4 text-center transition">
+      <div class="text-2xl mb-1">🚀</div>
+      <div class="text-sm font-semibold">開始篩選</div>
+      <div class="text-[10px] text-textl mt-0.5">5 大策略掃全市場</div>
+    </button>
+    <button onclick="switchTab('chart')" class="bg-card2 hover:bg-card2/70 border border-dim hover:border-gold/40 rounded-2xl p-4 text-center transition">
+      <div class="text-2xl mb-1">📈</div>
+      <div class="text-sm font-semibold">查 K 線</div>
+      <div class="text-[10px] text-textl mt-0.5">搜尋任意股票</div>
+    </button>
+  </div>
+</section>
+
 <!-- ============ TAB: 篩選分析 ============ -->
-<section data-tab-panel="screen" class="tab-panel space-y-5">
+<section data-tab-panel="screen" class="tab-panel space-y-5 hidden">
 
   <!-- 篩選模式 -->
   <div class="bg-card border border-dim/60 rounded-2xl p-5">
@@ -277,13 +335,25 @@ tailwind.config = {
   <!-- 結果列表 -->
   <div id="resSec" style="display:none">
     <div class="bg-card border border-dim/60 rounded-2xl p-5">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 class="text-base font-semibold flex items-center gap-2">🎯 篩選結果</h2>
-        <select id="resFilter" onchange="filterRes()" class="bg-card2 border border-dim rounded-md px-3 py-1.5 text-xs text-textd focus:border-gold outline-none">
-          <option value="all">全部</option>
-          <option value="hot">飆股 (5+)</option>
-          <option value="mid">關注 (3+)</option>
-        </select>
+        <div class="flex gap-2 items-center flex-wrap">
+          <select id="resFilter" onchange="filterRes()" class="bg-card2 border border-dim rounded-md px-2 py-1 text-xs text-textd focus:border-gold outline-none">
+            <option value="all">全部</option>
+            <option value="hot">飆股 (5+)</option>
+            <option value="mid">關注 (3+)</option>
+          </select>
+          <button id="compareToggleBtn" onclick="toggleCompareMode()" class="text-xs px-2.5 py-1 rounded-md border border-dim text-textm hover:border-gold/40">⇆ 對比</button>
+          <button onclick="exportCSV()" class="text-xs px-2.5 py-1 rounded-md border border-dim text-textm hover:border-gold/40">📊 CSV</button>
+          <button onclick="exportPNG()" class="text-xs px-2.5 py-1 rounded-md border border-dim text-textm hover:border-gold/40">📸 截圖</button>
+        </div>
+      </div>
+      <div id="compareBanner" class="hidden bg-gold/10 border border-gold/30 rounded-lg px-3 py-2 mb-3 text-xs flex items-center justify-between gap-2">
+        <span class="text-gold">對比模式：勾選 2~3 檔後點「開始對比」</span>
+        <div class="flex gap-2">
+          <button onclick="openCompare()" id="compareGoBtn" class="px-3 py-1 rounded-md gradient-gold text-bg font-bold text-xs" disabled>開始對比 (<span id="compareCount">0</span>)</button>
+          <button onclick="toggleCompareMode()" class="px-2 py-1 rounded-md border border-dim text-textm text-xs">取消</button>
+        </div>
       </div>
       <div id="resList" class="space-y-3"></div>
     </div>
@@ -488,6 +558,17 @@ tailwind.config = {
         <button onclick="onboardNext()" id="onboardNextBtn" class="flex-1 py-2.5 rounded-xl gradient-gold text-bg text-sm font-bold">下一頁</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 對比 Modal -->
+<div class="modal-overlay" id="compareModal">
+  <div class="bg-card border border-dim rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div class="px-5 py-3 border-b border-dim flex items-center justify-between">
+      <h3 class="font-semibold flex items-center gap-2">⇆ 股票對比</h3>
+      <button onclick="closeCompare()" class="w-8 h-8 rounded-full bg-card2 hover:bg-rise hover:text-white text-lg">&times;</button>
+    </div>
+    <div id="compareContent" class="overflow-auto p-4"></div>
   </div>
 </div>
 
@@ -907,12 +988,15 @@ function renderCards(results) {
     }).join('');
 
     const isFav = isFavorite(r.code);
+    const inCompare = compareSelected.has(r.code);
+    const cmpCheckbox = compareMode ? `<input type="checkbox" ${inCompare?'checked':''} onclick="event.stopPropagation();toggleCompareSelect('${r.code}','${r.name.replace(/'/g, '&#39;')}',this)" class="accent-gold w-4 h-4 flex-shrink-0" title="加入對比">` : '';
     return `
-    <div class="stock-card bg-card2/40 border border-dim rounded-2xl overflow-hidden ${hot?'card-glow':''}" onclick="goToChart('${r.code}','${r.name}')">
+    <div class="stock-card bg-card2/40 border border-dim rounded-2xl overflow-hidden ${hot?'card-glow':''} ${inCompare?'border-gold':''}" onclick="goToChart('${r.code}','${r.name}')">
       <div class="h-1 w-full ${stripCls}"></div>
       <div class="p-4">
         <!-- 頂部：名稱+價格+得分 -->
         <div class="flex items-start justify-between gap-3 mb-3">
+          ${cmpCheckbox}
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 mb-1 flex-wrap">
               <span class="text-lg font-bold text-textd">${r.name}</span>
@@ -1568,6 +1652,233 @@ function onboardSkip() {
 }
 
 // ============================================================
+//  v3.2 對比模式 (Compare)
+// ============================================================
+let compareMode = false;
+let compareSelected = new Set();  // codes
+
+function toggleCompareMode() {
+  compareMode = !compareMode;
+  compareSelected.clear();
+  document.getElementById('compareBanner').classList.toggle('hidden', !compareMode);
+  document.getElementById('compareToggleBtn').classList.toggle('border-gold', compareMode);
+  document.getElementById('compareToggleBtn').classList.toggle('text-gold', compareMode);
+  updateCompareCount();
+  renderCards(getFilteredResults());
+}
+
+function toggleCompareSelect(code, name, el) {
+  if (el.checked) {
+    if (compareSelected.size >= 3) {
+      el.checked = false;
+      alert('最多只能選 3 檔對比');
+      return;
+    }
+    compareSelected.add(code);
+  } else {
+    compareSelected.delete(code);
+  }
+  updateCompareCount();
+  // 重畫只更新邊框顏色，效能 OK
+  renderCards(getFilteredResults());
+}
+
+function updateCompareCount() {
+  const cnt = compareSelected.size;
+  document.getElementById('compareCount').textContent = cnt;
+  const btn = document.getElementById('compareGoBtn');
+  btn.disabled = cnt < 2;
+  btn.style.opacity = cnt < 2 ? '0.5' : '1';
+}
+
+function openCompare() {
+  if (compareSelected.size < 2) return;
+  const stocks = allResults.filter(r => compareSelected.has(r.code));
+  const headerCellsHTML = stocks.map(s => {
+    const chgCls = s.change_pct >= 0 ? 'text-rise' : 'text-fall';
+    const sign = s.change_pct >= 0 ? '+' : '';
+    const scCls = s.score>=5?'border-rise text-rise':s.score>=3?'border-fall text-fall':'border-textl text-textl';
+    return `<th class="text-center px-2 py-3 align-top">
+      <div class="font-bold text-textd">${s.name}</div>
+      <div class="num text-xs text-gold mb-1">${s.code}</div>
+      <div class="num text-xl font-bold text-textd">${fmtNum(s.price)}</div>
+      <div class="num text-sm font-semibold ${chgCls}">${sign}${s.change_pct?.toFixed(2)}%</div>
+      <div class="inline-flex w-10 h-10 rounded-full border-2 ${scCls} items-center justify-center num text-sm font-bold mx-auto mt-2">${s.score}/${s.total}</div>
+    </th>`;
+  }).join('');
+  const rows = [
+    ['週漲跌', stocks.map(s => `<span class="${s.week_change>=0?'text-rise':'text-fall'}">${s.week_change>=0?'+':''}${s.week_change?.toFixed(1)}%</span>`)],
+    ['月漲跌', stocks.map(s => `<span class="${s.month_change>=0?'text-rise':'text-fall'}">${s.month_change>=0?'+':''}${s.month_change?.toFixed(1)}%</span>`)],
+    ['換手率', stocks.map(s => s.turnover_rate!=null ? s.turnover_rate.toFixed(1)+'%' : '-')],
+    ['乖離率(MA20)', stocks.map(s => s.bias_20!=null ? (s.bias_20>=0?'+':'')+s.bias_20.toFixed(1)+'%' : '-')],
+    ['連續法人天數', stocks.map(s => Math.max(s.foreign_consec||0, s.trust_consec||0) + ' 日')],
+    ['量比 (20日)', stocks.map(s => s.vol_ratio!=null ? s.vol_ratio.toFixed(1)+'x' : '-')],
+    ['RSI', stocks.map(s => s.rsi!=null ? s.rsi.toFixed(0) : '-')],
+    ['本益比', stocks.map(s => s.pe!=null ? s.pe.toFixed(1) : '-')],
+    ['外資 (張)', stocks.map(s => s.foreign_net ? (s.foreign_net>0?'+':'')+Math.round(s.foreign_net/1000).toLocaleString() : '-')],
+    ['投信 (張)', stocks.map(s => s.trust_net ? (s.trust_net>0?'+':'')+Math.round(s.trust_net/1000).toLocaleString() : '-')],
+    ['MA20', stocks.map(s => s.ma20!=null ? fmtNum(s.ma20) : '-')],
+  ];
+  const bodyRows = rows.map(([label, vals]) => {
+    return `<tr class="border-t border-dim/40">
+      <td class="text-[11px] text-textm py-2 px-2 sticky left-0 bg-card">${label}</td>
+      ${vals.map(v => `<td class="text-center py-2 px-2 num text-sm">${v}</td>`).join('')}
+    </tr>`;
+  }).join('');
+  document.getElementById('compareContent').innerHTML = `
+    <table class="w-full text-textd">
+      <thead><tr><th class="sticky left-0 bg-card"></th>${headerCellsHTML}</tr></thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+  `;
+  document.getElementById('compareModal').classList.add('show');
+}
+
+function closeCompare() {
+  document.getElementById('compareModal').classList.remove('show');
+}
+document.getElementById('compareModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCompare();
+});
+
+// ============================================================
+//  v3.2 匯出 CSV / 截圖
+// ============================================================
+function exportCSV() {
+  const results = getFilteredResults();
+  if (!results.length) { alert('沒有資料可匯出'); return; }
+  const headers = ['代號','名稱','現價','日漲跌%','週漲跌%','月漲跌%','得分','總分','換手率%','乖離率MA20%','RSI','量比','本益比','外資連續天數','投信連續天數','外資張數','投信張數','MA20'];
+  const rows = results.map(r => [
+    r.code, r.name, r.price, r.change_pct, r.week_change, r.month_change,
+    r.score, r.total,
+    r.turnover_rate, r.bias_20, r.rsi, r.vol_ratio, r.pe,
+    r.foreign_consec, r.trust_consec,
+    r.foreign_net ? Math.round(r.foreign_net/1000) : '',
+    r.trust_net ? Math.round(r.trust_net/1000) : '',
+    r.ma20,
+  ].map(v => v == null ? '' : String(v).replace(/"/g,'""')));
+  // BOM for Excel UTF-8 中文
+  const csv = '﻿' + [headers, ...rows].map(row => row.map(c => /[,"\n]/.test(c) ? `"${c}"` : c).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  a.href = url; a.download = `飆股篩選_${ts}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function exportPNG() {
+  const el = document.getElementById('resList');
+  if (!el || !el.innerHTML.trim()) { alert('沒有結果可截圖'); return; }
+  if (typeof html2canvas === 'undefined') { alert('截圖工具未載入'); return; }
+  const btn = event.target;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ 截圖中...';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#0a1628',
+      scale: 2,
+      useCORS: true,
+    });
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    a.href = url; a.download = `飆股篩選_${ts}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('截圖失敗: ' + e.message);
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+//  v3.2 儀表板 (Dashboard)
+// ============================================================
+async function renderDashboard() {
+  document.getElementById('dashTime').textContent = new Date().toLocaleTimeString('zh-TW');
+  // 1. 大盤 / 期貨
+  try {
+    const r = await fetch('/api/market-status');
+    const d = await r.json();
+    const idx = d.index || {};
+    if (idx.taiex) {
+      const t = idx.taiex;
+      const cls = t.change >= 0 ? 'text-rise' : 'text-fall';
+      const sign = t.change >= 0 ? '+' : '';
+      document.getElementById('dashTaiex').textContent = t.price.toLocaleString();
+      document.getElementById('dashTaiex').className = 'num text-lg font-bold mt-1 ' + cls;
+      document.getElementById('dashTaiexChg').innerHTML = `<span class="${cls}">${sign}${t.change} (${sign}${t.change_pct}%)</span>`;
+    }
+    if (idx.futures) {
+      const f = idx.futures;
+      const cls = f.change >= 0 ? 'text-rise' : 'text-fall';
+      const sign = f.change >= 0 ? '+' : '';
+      document.getElementById('dashFutures').textContent = f.price.toLocaleString();
+      document.getElementById('dashFutures').className = 'num text-lg font-bold mt-1 ' + cls;
+      document.getElementById('dashFuturesChg').innerHTML = `<span class="${cls}">${sign}${f.change} (${sign}${f.change_pct}%)</span>`;
+    }
+  } catch(e) {}
+
+  // 2. 我的最愛（前 5 檔，搭即時報價）
+  const favEl = document.getElementById('dashFav');
+  if (!favorites.length) {
+    favEl.innerHTML = `<div class="text-center text-xs text-textl py-4">尚無收藏 — 篩選後從卡片點 ☆ 加入</div>`;
+  } else {
+    const top5 = favorites.slice(0, 5);
+    // 取即時報價
+    try {
+      const r = await fetch('/api/realtime', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({codes: top5.map(f => f.code)})
+      });
+      const d = await r.json();
+      const quotes = d.quotes || {};
+      favEl.innerHTML = top5.map(f => {
+        const q = quotes[f.code] || {};
+        const chgCls = (q.change_pct || 0) >= 0 ? 'text-rise' : 'text-fall';
+        const sign = (q.change_pct || 0) >= 0 ? '+' : '';
+        return `<div class="flex items-center justify-between bg-card2/40 rounded-lg px-3 py-2 cursor-pointer hover:border-gold/30 border border-dim" onclick="goToChart('${f.code}','${f.name.replace(/'/g, '&#39;')}')">
+          <div class="min-w-0">
+            <div class="text-sm font-semibold text-textd">${f.name} <span class="num text-[10px] text-gold">${f.code}</span></div>
+          </div>
+          <div class="text-right">
+            <div class="num text-sm font-bold ${chgCls}">${q.price != null ? fmtNum(q.price) : '-'}</div>
+            <div class="num text-[10px] ${chgCls}">${q.change_pct != null ? sign+q.change_pct.toFixed(2)+'%' : '-'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      favEl.innerHTML = `<div class="text-xs text-textl py-2">無法取得報價</div>`;
+    }
+  }
+
+  // 3. 最後篩選結果摘要（top 3）
+  const screenEl = document.getElementById('dashScreen');
+  if (!allResults.length) {
+    screenEl.innerHTML = `<div class="text-center text-xs text-textl py-4">尚未篩選 — 切「篩選」分頁開始</div>`;
+  } else {
+    const top3 = allResults.slice(0, 3);
+    screenEl.innerHTML = top3.map(r => {
+      const stripCls = r.score>=5?'bg-rise':r.score>=3?'bg-fall':'bg-yellow-300';
+      return `<div class="flex items-center gap-3 bg-card2/40 rounded-lg px-3 py-2 cursor-pointer hover:border-gold/30 border border-dim" onclick="goToChart('${r.code}','${r.name.replace(/'/g, '&#39;')}')">
+        <div class="w-1 h-8 ${stripCls} rounded"></div>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-semibold text-textd">${r.name} <span class="num text-[10px] text-gold">${r.code}</span></div>
+          <div class="num text-[10px] text-textm">${r.score}/${r.total} 分 · ${r.matched.length} 條件命中</div>
+        </div>
+        <div class="num text-sm font-bold ${r.change_pct>=0?'text-rise':'text-fall'}">${fmtNum(r.price)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================================================
 //  Init
 // ============================================================
 checkMarketStatus().then(() => { if (isMarketOpen) startAutoRefresh(); });
@@ -1588,12 +1899,16 @@ if (!localStorage.getItem('onboard_done_v1')) {
   setTimeout(showOnboarding, 600);
 }
 
-// switchTab 觸發 favorites 自動刷新
+// switchTab 觸發各 tab 對應的自動更新
 const _origSwitchTab = switchTab;
 switchTab = function(name) {
   _origSwitchTab(name);
   if (name === 'favorites') refreshFavorites();
+  if (name === 'dashboard') renderDashboard();
 };
+
+// 預設先載入儀表板
+renderDashboard();
 </script>
 </body>
 </html>
