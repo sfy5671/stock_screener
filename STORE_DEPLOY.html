@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飆股篩選器 - App Store 上架 SOP</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI','Microsoft JhengHei',sans-serif; background:#0a1628; color:#e2e8f0; line-height:1.7; padding:20px; }
+.container { max-width:900px; margin:0 auto; }
+h1 { font-size:28px; color:#d4af37; margin:24px 0 12px; padding-bottom:8px; border-bottom:2px solid #d4af37; }
+h2 { font-size:22px; color:#fff; margin:24px 0 10px; }
+h3 { font-size:17px; color:#d4af37; margin:18px 0 8px; }
+h4 { font-size:14px; color:#fff; margin:12px 0 6px; }
+p { margin:8px 0; }
+ul, ol { margin:8px 0 8px 24px; }
+li { margin:4px 0; }
+.card { background:#14233d; border:1px solid #2a3e5e; border-radius:12px; padding:18px; margin:14px 0; }
+.warn { background:rgba(239,68,68,.08); border-left:3px solid #ef4444; padding:12px 16px; border-radius:0 8px 8px 0; margin:10px 0; }
+.tip { background:rgba(34,197,94,.08); border-left:3px solid #22c55e; padding:12px 16px; border-radius:0 8px 8px 0; margin:10px 0; }
+.gold { background:rgba(212,175,55,.08); border-left:3px solid #d4af37; padding:12px 16px; border-radius:0 8px 8px 0; margin:10px 0; }
+code { background:#0f1d33; padding:2px 6px; border-radius:4px; font-size:13px; font-family:Consolas,monospace; color:#d4af37; }
+pre { background:#0f1d33; color:#e2e8f0; padding:14px 18px; border-radius:8px; overflow-x:auto; font-size:13px; margin:10px 0; border:1px solid #2a3e5e; }
+table { width:100%; border-collapse:collapse; margin:10px 0; font-size:14px; }
+th, td { padding:8px 12px; border:1px solid #2a3e5e; text-align:left; }
+th { background:#1a2c4e; }
+.badge { display:inline-block; padding:3px 10px; border-radius:14px; font-size:11px; font-weight:600; margin-right:6px; }
+.badge-ios { background:rgba(59,130,246,.18); color:#60a5fa; border:1px solid rgba(59,130,246,.35); }
+.badge-android { background:rgba(34,197,94,.18); color:#22c55e; border:1px solid rgba(34,197,94,.35); }
+a { color:#d4af37; }
+.toc { position:sticky; top:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>飆股篩選器 - App Store 上架 SOP</h1>
+<p style="color:#94a3b8">最後更新：2026-06-02 • 對應版本 v3.1</p>
+
+<div class="card">
+<h3>📋 上架流程概覽</h3>
+<ol>
+  <li><b>準備帳號與費用</b>（Apple Developer + Google Play Console）</li>
+  <li><b>PWABuilder 打包</b>（一鍵生成 iOS + Android package）</li>
+  <li><b>準備上架素材</b>（截圖、描述、icon）</li>
+  <li><b>提交 Apple App Store / Google Play 審核</b></li>
+  <li>審核通過上架</li>
+</ol>
+</div>
+
+<h1>Step 1：帳號與費用</h1>
+
+<div class="card">
+<table>
+  <tr><th>平台</th><th>費用</th><th>必備工具</th><th>審核時間</th></tr>
+  <tr>
+    <td><span class="badge badge-ios">iOS</span> App Store</td>
+    <td>USD $99/年</td>
+    <td>Mac + Xcode + Apple ID</td>
+    <td>1-3 天</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-android">Android</span> Google Play</td>
+    <td>USD $25 一次性</td>
+    <td>瀏覽器 + Google 帳號</td>
+    <td>幾小時 - 7 天</td>
+  </tr>
+</table>
+</div>
+
+<div class="warn">
+  <b>建議優先 Google Play</b>：費用便宜、不需 Mac、審核快。實測通過後再投資 iOS。
+</div>
+
+<h3>申請 Apple Developer Program</h3>
+<ol>
+  <li>用 Apple ID 登入 <a href="https://developer.apple.com/programs/" target="_blank">developer.apple.com/programs</a></li>
+  <li>選擇「Individual」個人方案 USD $99/年</li>
+  <li>填入身分證明資訊 + 信用卡</li>
+  <li>等 1-2 個工作天驗證（Apple 會打電話確認）</li>
+</ol>
+
+<h3>申請 Google Play Console</h3>
+<ol>
+  <li>用 Google 帳號登入 <a href="https://play.google.com/console/signup" target="_blank">play.google.com/console/signup</a></li>
+  <li>選「個人開發者」</li>
+  <li>付一次性 USD $25</li>
+  <li>填入聯絡資訊 → 即可開始上架</li>
+</ol>
+
+<hr style="margin:30px 0;border-color:#2a3e5e">
+
+<h1>Step 2：PWABuilder 打包</h1>
+
+<div class="card">
+<p>PWA → 原生 App 的橋樑。免費線上工具，一鍵生成 iOS + Android 安裝包。</p>
+<p><b>網址：</b><a href="https://www.pwabuilder.com" target="_blank">https://www.pwabuilder.com</a></p>
+</div>
+
+<h3>操作步驟</h3>
+<ol>
+  <li>打開 PWABuilder.com</li>
+  <li>輸入網址：<code>https://stock-screener-pro-5wpz.onrender.com</code></li>
+  <li>點 <b>Start</b> 等驗證跑完（會顯示 PWA / Manifest / Service Worker 三個分數，目標都要 80+）</li>
+  <li>右上角點 <b>Package For Stores</b></li>
+</ol>
+
+<h3><span class="badge badge-android">Android</span> Google Play 打包</h3>
+<ol>
+  <li>選 <b>Android</b> → <b>Generate Package</b></li>
+  <li>設定畫面：
+    <ul>
+      <li><b>Package ID</b>：<code>com.songfamily.stockscreener</code>（一旦上架不能改！）</li>
+      <li><b>App name</b>：飆股篩選器</li>
+      <li><b>Launcher name</b>：飆股篩選</li>
+      <li><b>App version</b>：1.0.0（versionCode 從 1 開始）</li>
+      <li><b>Display mode</b>：Standalone</li>
+      <li><b>Status bar color</b>：#0a1628</li>
+      <li><b>Signing key</b>：產生新的（重要！保存好簽名金鑰，後續更新版本必須用同一把）</li>
+    </ul>
+  </li>
+  <li>下載 <b>飆股篩選-android.zip</b>（內含 .aab 上架檔 + signing key）</li>
+</ol>
+
+<div class="warn">
+  <b>⚠️ Signing Key 絕對不能遺失！</b>遺失後永遠無法更新已上架 App，只能下架重新上架（重新累積使用者）。<br>
+  建議：壓縮包 + 私人 GitHub repo 各備份一份 + .keystore 密碼用 1Password 存。
+</div>
+
+<h3><span class="badge badge-ios">iOS</span> App Store 打包</h3>
+<ol>
+  <li>選 <b>iOS</b> → <b>Generate Package</b></li>
+  <li>設定畫面：
+    <ul>
+      <li><b>Bundle ID</b>：<code>com.songfamily.stockscreener</code></li>
+      <li><b>App name</b>：飆股篩選器</li>
+      <li><b>App version</b>：1.0</li>
+    </ul>
+  </li>
+  <li>下載 <b>飆股篩選-ios.zip</b>（Xcode 專案壓縮包）</li>
+  <li>解壓 → 用 Mac 上的 <b>Xcode</b> 打開 .xcworkspace 檔案</li>
+  <li>在 Xcode 內：
+    <ul>
+      <li>選你的 Apple Developer Team</li>
+      <li>修改 Bundle Identifier（如已被佔用）</li>
+      <li>Archive → Distribute App → App Store Connect → Upload</li>
+    </ul>
+  </li>
+</ol>
+
+<hr style="margin:30px 0;border-color:#2a3e5e">
+
+<h1>Step 3：上架素材</h1>
+
+<h3>必備項目（兩個 store 都要）</h3>
+<ul>
+  <li>✅ App icon 1024×1024 PNG（在 <code>static/icon-1024.png</code> 已生成）</li>
+  <li>✅ <b>Privacy Policy URL</b>：<code>https://stock-screener-pro-5wpz.onrender.com/privacy</code></li>
+  <li>✅ App 描述（簡短 + 完整版，見下方）</li>
+  <li>📸 截圖（每個 store 至少 2-3 張，下面說明）</li>
+</ul>
+
+<h3>截圖規格</h3>
+<table>
+  <tr><th>平台</th><th>尺寸（直式）</th><th>數量</th><th>怎麼取得</th></tr>
+  <tr>
+    <td>Google Play</td>
+    <td>1080×1920 或 1440×2560</td>
+    <td>至少 2 張</td>
+    <td>手機開 https://stock-screener-pro-5wpz.onrender.com → 安卓 Chrome 截圖（音量下+電源）</td>
+  </tr>
+  <tr>
+    <td>App Store</td>
+    <td>1290×2796 (6.7" iPhone)</td>
+    <td>至少 3 張</td>
+    <td>iPhone 開 Safari → 截圖（電源+音量上）</td>
+  </tr>
+</table>
+
+<div class="tip">
+建議截圖：1) 篩選分析（顯示策略模式 + 結果卡片）  2) K 線圖（顯示自動標訊號）  3) 儀表板（顯示市場速覽 + 我的最愛）
+</div>
+
+<h3>App 描述範本</h3>
+
+<h4>簡短描述（80 字內）</h4>
+<pre>台股飆股篩選工具，整合換手率、乖離率、連續法人買超等真飆股特徵，2~3 秒掃描全市場 2000+ 檔上市櫃股票。</pre>
+
+<h4>完整描述</h4>
+<pre>📈 飆股篩選器 v3.1 - 真正會選股的台股工具
+
+【為什麼跟其他選股 App 不同？】
+不是 KD 金叉、MACD 翻多這種人人都能寫的指標組合，而是用真正的飆股共同特徵：
+✓ 換手率 3-25%（活躍但未過熱的甜蜜區）
+✓ 乖離率 MA20 0-15%（強勢但未過熱）
+✓ 連續法人買超 3 日以上（主力進場訊號）
+✓ 爆量突破 20 日新高（量價雙確認）
+✓ 量能持續放大（5 日均量 > 20 日均量 1.5x）
+
+【5 大策略模式】
+🚀 飆股 - 追熱錢、做主升段
+🎯 高勝率 - 均值回歸、低買反彈
+⚡ 當沖 - 日內進出
+🌙 隔日沖 - 尾盤進場
+🔥 全模式合併 - 28 策略總和掃描
+
+【核心功能】
+• 全市場 2 秒預篩 + 深度分析（證交所/櫃買中心 OpenAPI）
+• 五種週期 K 線（1分/5分/15分/30分/日K/週K）
+• 自動標註進場/離場訊號
+• 大盤 + 台指期即時走勢
+• 自選收藏夾 + 多檔股票對比
+• 結果匯出 CSV / 截圖分享
+• 即時報價自動更新（盤中 30 秒）
+
+【資料來源】
+證交所 TWSE OpenAPI + 櫃買中心 TPEX + Yahoo Finance
+
+⚠️ 免責聲明：本工具僅供技術分析學習參考，不構成投資建議。投資有風險，請自行判斷。</pre>
+
+<h3>分類 / 關鍵字</h3>
+<ul>
+  <li><b>主要分類</b>：金融（Finance）</li>
+  <li><b>次要分類</b>：商業（Business） / 生產力（Productivity）</li>
+  <li><b>關鍵字</b>：台股、股票、飆股、技術分析、選股、K線、法人買超、換手率、乖離率</li>
+</ul>
+
+<hr style="margin:30px 0;border-color:#2a3e5e">
+
+<h1>Step 4：審核 & 上架</h1>
+
+<h3><span class="badge badge-android">Android</span> Google Play 提交</h3>
+<ol>
+  <li>登入 <a href="https://play.google.com/console" target="_blank">Play Console</a></li>
+  <li>建立新應用程式 → 上傳 .aab 檔案</li>
+  <li>填寫商店資訊（描述、截圖、icon、隱私政策連結）</li>
+  <li>內容分級問卷（金融類選「不含成人內容」）</li>
+  <li>目標對象：13+（金融類不能 13 以下）</li>
+  <li>送出審核 → 約 1-7 天</li>
+</ol>
+
+<h3><span class="badge badge-ios">iOS</span> App Store 提交</h3>
+<ol>
+  <li>登入 <a href="https://appstoreconnect.apple.com" target="_blank">App Store Connect</a></li>
+  <li>建立新 App（記得 Bundle ID 跟 Xcode 上傳的一致）</li>
+  <li>填寫商店資訊（描述、截圖、icon、隱私政策連結）</li>
+  <li>App Review Information：填一個審核員的測試帳號（本 App 不需登入，留 demo 用 email 即可）</li>
+  <li>填 <b>Notes for Review</b>：</li>
+</ol>
+
+<div class="gold">
+<b>Notes for Review 建議內容：</b><br><br>
+This is a Taiwan stock technical analysis tool that aggregates publicly available data from TWSE (Taiwan Stock Exchange) OpenAPI and Yahoo Finance. The app does NOT provide investment advice — it only displays technical indicators and screening results for educational purposes. No user account is required. The disclaimer is shown at the bottom of every page. Privacy policy is at /privacy route.
+</div>
+
+<ol start="6">
+  <li>送出審核 → 約 1-3 天</li>
+</ol>
+
+<div class="warn">
+<b>金融類 App Apple 審核重點：</b>
+<ul>
+  <li>明確的免責聲明（已有 ✓）</li>
+  <li>隱私政策 URL（已有 ✓）</li>
+  <li>不能宣稱「保證獲利」「最準預測」（描述要避開）</li>
+  <li>資料來源要寫清楚（TWSE / Yahoo Finance）</li>
+</ul>
+</div>
+
+<hr style="margin:30px 0;border-color:#2a3e5e">
+
+<h1>Step 5：更新版本</h1>
+
+<h3>後續更新流程</h3>
+<ol>
+  <li>修改程式碼 → push GitHub → Render 自動部署</li>
+  <li>本機跑 PWABuilder 重新生 zip（用<b>同樣的 Package ID / 簽名金鑰</b>，version 遞增）</li>
+  <li>Play Console / App Store Connect 上傳新版本</li>
+  <li>填「更新內容」（What's New）</li>
+  <li>送審 → 通過後使用者會收到更新通知</li>
+</ol>
+
+<div class="tip">
+PWA 部分（網頁內容）<b>不需重新上架</b>就會更新——只要 push GitHub，使用者開 App 就拿到新版。<br>
+只有改 manifest / icon / native 設定時才需要重打包送審。
+</div>
+
+<hr style="margin:30px 0;border-color:#2a3e5e">
+
+<h1>附錄：常見問題</h1>
+
+<h3>Q：Apple Developer $99 第二年不續費會怎樣？</h3>
+<p>A：App 會被下架，但已下載的使用者還能繼續用。續費後 App 自動恢復上架，不需重新審核。</p>
+
+<h3>Q：可不可以一個帳號上架多個 App？</h3>
+<p>A：可以。$99 是「Developer Program」費用，不限 App 數量。</p>
+
+<h3>Q：Privacy Policy URL 一定要嗎？</h3>
+<p>A：是。Apple + Google 都強制要求。本專案已建立 <code>/privacy</code> 路由，URL：<a href="https://stock-screener-pro-5wpz.onrender.com/privacy" target="_blank">https://stock-screener-pro-5wpz.onrender.com/privacy</a></p>
+
+<h3>Q：審核被拒怎麼辦？</h3>
+<p>A：Reviewer 會給原因，最常見：(1) 截圖跟功能不符 (2) 描述含禁用字 (3) 隱私政策連結失效。修正後重新送即可，不需重新付費。</p>
+
+<h3>Q：免費 vs 付費 App？</h3>
+<p>A：免費（無 IAP）最簡單。若要收費或內購（unlock 進階功能），需另外設定 IAP 商品。建議第一版先免費上架累積使用者。</p>
+
+<div style="margin-top:40px; padding:20px; background:#14233d; border-radius:12px; text-align:center; border:1px solid #d4af37;">
+  <h2 style="color:#d4af37">📞 開發者資訊</h2>
+  <p>飆股篩選器 v3.1 • Stock Screener</p>
+  <p>GitHub: <a href="https://github.com/sfy5671/stock_screener">sfy5671/stock_screener</a></p>
+  <p>聯絡：sfy5671@gmail.com</p>
+</div>
+
+</div>
+</body>
+</html>

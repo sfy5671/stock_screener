@@ -34,6 +34,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/privacy")
+def privacy():
+    """隱私政策 - App Store / Google Play 上架必填的 Privacy Policy URL"""
+    return render_template("privacy.html")
+
+
 # ============================================================================
 #  API: 股票清單
 # ============================================================================

@@ -1909,6 +1909,15 @@ switchTab = function(name) {
 
 // 預設先載入儀表板
 renderDashboard();
+
+// 處理 URL ?tab=xxx 讓 App shortcut 能直接開到對應分頁
+(function handleInitialTab() {
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  if (tab && ['dashboard','screen','favorites','market','chart','info'].includes(tab)) {
+    switchTab(tab);
+  }
+})();
 </script>
 </body>
 </html>

@@ -1,14 +1,20 @@
 {
+  "id": "/?source=pwa",
   "name": "飆股篩選器 v3.1 - 台股技術分析",
   "short_name": "飆股篩選",
-  "description": "台股飆股篩選工具 v3.1：換手率、乖離率、連續法人買超、五大策略模式（飆股/高勝率/當沖/隔日沖）",
+  "description": "台股飆股篩選工具：換手率、乖離率、連續法人買超、五大策略模式（飆股/高勝率/當沖/隔日沖）。整合證交所即時資料，2~3 秒掃描全市場 2000+ 檔上市櫃股票。",
+  "lang": "zh-TW",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0a1628",
   "theme_color": "#0a1628",
   "orientation": "portrait",
-  "categories": ["finance"],
+  "categories": ["finance", "productivity", "business"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/static/icon-192.png",
@@ -33,6 +39,52 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "篩選分析 - 五大策略模式"
+    },
+    {
+      "src": "/static/screenshot-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "結果卡片 - 換手率/乖離率/連續法人"
+    },
+    {
+      "src": "/static/screenshot-3.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "K 線圖 - 自動標進場離場訊號"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "開始篩選",
+      "short_name": "篩選",
+      "description": "立即用飆股策略掃描全市場",
+      "url": "/?tab=screen",
+      "icons": [{ "src": "/static/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "我的收藏",
+      "short_name": "收藏",
+      "description": "查看收藏的股票即時報價",
+      "url": "/?tab=favorites",
+      "icons": [{ "src": "/static/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "大盤指數",
+      "short_name": "大盤",
+      "description": "查看加權指數與台指期",
+      "url": "/?tab=market",
+      "icons": [{ "src": "/static/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
