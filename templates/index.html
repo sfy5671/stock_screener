@@ -1389,7 +1389,13 @@ function createMiniChart(container) {
     layout: {background:{type:'solid',color:'#0f1d33'},textColor:'#94a3b8',fontSize:11},
     grid: {vertLines:{color:'#1a2c4e'},horzLines:{color:'#1a2c4e'}},
     rightPriceScale: {borderColor:'#2a3e5e'},
-    timeScale: {borderColor:'#2a3e5e',timeVisible:true,secondsVisible:false},
+    timeScale: {
+      borderColor:'#2a3e5e',
+      timeVisible:true,
+      secondsVisible:false,
+      rightOffset: 0,        // 不留右邊空白（資料貼齊右邊邊界）
+      shiftVisibleRangeOnNewBar: true,
+    },
     crosshair: {mode: LightweightCharts.CrosshairMode.Normal},
   });
   new ResizeObserver(() => chart.resize(el.clientWidth, parseInt(el.style.height)||250)).observe(el);
@@ -1452,6 +1458,16 @@ async function initMarketCharts() {
     futuresChartInstance = createMiniChart('futuresChart');
     if (futuresChartInstance) {
       futuresSeries = futuresChartInstance.addLineSeries({color:'#d4af37',lineWidth:2,priceLineVisible:true,lastValueVisible:true});
+      // 期交所無歷史分鐘 K API，借用加權指數 1m 當基底，讓圖一開始就有走勢
+      // 盤中 refreshMarketPage 會以台指期即時點 update（會自然銜接）
+      try {
+        const r = await fetch('/api/chart/t00?period=1m');
+        if (r.ok) {
+          const d = await r.json();
+          futuresSeries.setData(d.candles.map(c=>({time:c.time,value:c.close})));
+          futuresChartInstance.timeScale().fitContent();
+        }
+      } catch(e) {}
     }
   }
 }
