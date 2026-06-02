@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飆股篩選器 - 上架截圖預覽</title>
+<style>
+body { background:#0a1628; color:#e2e8f0; font-family:'Noto Sans TC',sans-serif; margin:0; padding:24px; }
+h1 { background:linear-gradient(90deg,#d4af37,#f5d76e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0 0 20px; }
+h2 { color:#d4af37; margin:40px 0 16px; padding-bottom:8px; border-bottom:1px solid #2a3e5e; }
+.row { display:flex; gap:16px; overflow-x:auto; padding-bottom:8px; }
+.col { flex:0 0 auto; text-align:center; }
+.col img { display:block; width:180px; border-radius:24px; box-shadow:0 6px 20px rgba(0,0,0,.5); margin-bottom:8px; }
+.col .label { font-size:11px; color:#94a3b8; }
+.col .size { font-size:10px; color:#64748b; font-family:monospace; }
+.info { background:#14233d; border:1px solid #2a3e5e; border-radius:12px; padding:16px 20px; max-width:900px; margin:0 0 32px; font-size:13px; line-height:1.7; }
+.info b { color:#d4af37; }
+</style>
+</head>
+<body>
+<h1>飆股篩選器 - 上架截圖預覽</h1>
+
+<div class="info">
+✅ 從 5 張 iPhone 16 Pro 原始截圖（1206×2622）自動處理：<br>
+1. 裁掉頂部狀態列 / Safari 網址列<br>
+2. 裁掉底部 Safari 工具列<br>
+3. 等比例縮放置中到目標規格畫布<br>
+4. 多餘空間用 <b>#0a1628 午夜藍</b>背景補滿<br>
+<br>
+<b>檔案位置：</b> <code>static/store-screenshots/{ios,android}/{1..5}.png</code><br>
+直接拿給 PWABuilder 打包 / Google Play Console / App Store Connect 上傳。
+</div>
+
+<h2>🍎 Apple App Store（6.7" iPhone, 1290×2796）</h2>
+<div class="row">
+  <div class="col"><img src="/static/store-screenshots/ios/1.png"><div class="label">1. 篩選結果</div><div class="size">1290×2796</div></div>
+  <div class="col"><img src="/static/store-screenshots/ios/2.png"><div class="label">2. 我的收藏</div><div class="size">1290×2796</div></div>
+  <div class="col"><img src="/static/store-screenshots/ios/3.png"><div class="label">3. K 線+公司資訊</div><div class="size">1290×2796</div></div>
+  <div class="col"><img src="/static/store-screenshots/ios/4.png"><div class="label">4. 首頁儀表板</div><div class="size">1290×2796</div></div>
+  <div class="col"><img src="/static/store-screenshots/ios/5.png"><div class="label">5. 策略說明</div><div class="size">1290×2796</div></div>
+</div>
+
+<h2>🤖 Google Play（1080×1920）</h2>
+<div class="row">
+  <div class="col"><img src="/static/store-screenshots/android/1.png"><div class="label">1. 篩選結果</div><div class="size">1080×1920</div></div>
+  <div class="col"><img src="/static/store-screenshots/android/2.png"><div class="label">2. 我的收藏</div><div class="size">1080×1920</div></div>
+  <div class="col"><img src="/static/store-screenshots/android/3.png"><div class="label">3. K 線+公司資訊</div><div class="size">1080×1920</div></div>
+  <div class="col"><img src="/static/store-screenshots/android/4.png"><div class="label">4. 首頁儀表板</div><div class="size">1080×1920</div></div>
+  <div class="col"><img src="/static/store-screenshots/android/5.png"><div class="label">5. 策略說明</div><div class="size">1080×1920</div></div>
+</div>
+
+<div class="info" style="margin-top:40px">
+<b>建議上架時的順序：</b><br>
+1. 篩選結果（最有衝擊力的截圖，放第一張）<br>
+2. K 線圖+公司資訊（顯示產品深度）<br>
+3. 首頁儀表板（一目了然的市場速覽）<br>
+4. 我的收藏（個人化功能）<br>
+5. 策略說明（教學意圖）
+</div>
+
+</body>
+</html>
