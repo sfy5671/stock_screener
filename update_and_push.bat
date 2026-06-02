@@ -28,7 +28,7 @@ git push
 echo.
 echo ============================================================
 echo   上傳完成！Render 會在 2~3 分鐘內自動更新
-echo   網址: https://stock-screener-beza.onrender.com
+echo   網址: https://stock-screener-pro-5wpz.onrender.com
 echo ============================================================
 echo.
 

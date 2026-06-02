@@ -49,7 +49,7 @@ if errorlevel 1 (
 echo.
 echo ============================================================
 echo  ✓ 完成！Render 會自動偵測新 commit 並重新部署（約 3 分鐘）
-echo  線上網址: https://stock-screener-beza.onrender.com/
+echo  線上網址: https://stock-screener-pro-5wpz.onrender.com/
 echo ============================================================
 echo.
 pause
