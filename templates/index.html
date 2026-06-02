@@ -106,10 +106,11 @@ tailwind.config = {
   <div id="autoRefreshInfo" class="max-w-[1100px] mx-auto px-4 md:px-6 pb-1.5 text-[11px] num text-textm/80 text-right"></div>
   <nav class="border-t border-dim/40">
     <div class="max-w-[1100px] mx-auto px-2 md:px-4 flex">
-      <button onclick="switchTab('screen')" data-tab-btn="screen" class="tab-btn flex-1 py-3 text-sm font-medium text-textm border-b-2 border-transparent transition tab-active">篩選分析</button>
-      <button onclick="switchTab('market')" data-tab-btn="market" class="tab-btn flex-1 py-3 text-sm font-medium text-textm border-b-2 border-transparent transition">大盤期貨</button>
-      <button onclick="switchTab('chart')" data-tab-btn="chart" class="tab-btn flex-1 py-3 text-sm font-medium text-textm border-b-2 border-transparent transition">K 線圖</button>
-      <button onclick="switchTab('info')" data-tab-btn="info" class="tab-btn flex-1 py-3 text-sm font-medium text-textm border-b-2 border-transparent transition">策略說明</button>
+      <button onclick="switchTab('screen')" data-tab-btn="screen" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition tab-active">篩選</button>
+      <button onclick="switchTab('favorites')" data-tab-btn="favorites" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">★ 收藏</button>
+      <button onclick="switchTab('market')" data-tab-btn="market" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">大盤</button>
+      <button onclick="switchTab('chart')" data-tab-btn="chart" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">K 線</button>
+      <button onclick="switchTab('info')" data-tab-btn="info" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">說明</button>
     </div>
   </nav>
 </header>
@@ -339,6 +340,21 @@ tailwind.config = {
   <div class="text-center text-xs text-textl">盤中每 <span class="text-gold font-semibold">10 秒</span>自動更新 • 證交所/期交所即時 API</div>
 </section>
 
+<!-- ============ TAB: 我的最愛 ============ -->
+<section data-tab-panel="favorites" class="tab-panel space-y-5 hidden">
+  <div class="bg-card border border-dim/60 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+      <h2 class="text-base font-semibold flex items-center gap-2"><span class="text-gold">★</span> 我的收藏</h2>
+      <div class="flex gap-2 items-center">
+        <span id="favCount" class="text-xs px-3 py-1 rounded-full bg-gold/10 text-gold border border-gold/30 num">0 檔</span>
+        <button onclick="refreshFavorites()" class="text-xs px-3 py-1.5 rounded-md bg-card2 hover:bg-card2/70 border border-dim text-textd">🔄 重新整理</button>
+      </div>
+    </div>
+    <p class="text-xs text-textm mb-3">從「篩選」結果卡片上點 ★ 加入收藏。盤中會自動更新即時報價（30 秒）。</p>
+    <div id="favList" class="space-y-3"></div>
+  </div>
+</section>
+
 <!-- ============ TAB: K 線圖 ============ -->
 <section data-tab-panel="chart" class="tab-panel space-y-5 hidden">
   <div class="bg-card border border-dim/60 rounded-2xl p-5">
@@ -451,6 +467,29 @@ tailwind.config = {
 </section>
 
 </main>
+
+<!-- 首次使用導覽 Overlay -->
+<div class="modal-overlay" id="onboardOverlay" style="z-index:300">
+  <div class="bg-card border border-gold/40 rounded-2xl w-full max-w-md overflow-hidden flex flex-col card-glow">
+    <div class="p-6 text-center">
+      <div id="onboardTitle" class="text-3xl mb-3">📈</div>
+      <h3 id="onboardHead" class="text-xl font-bold text-gold mb-2">歡迎使用飆股篩選器</h3>
+      <p id="onboardBody" class="text-sm text-textm leading-relaxed mb-4">這是一個 4 頁的快速導覽，30 秒帶你了解所有功能。</p>
+    </div>
+    <div class="px-6 pb-4">
+      <div class="flex gap-1.5 justify-center mb-4">
+        <span class="w-2 h-2 rounded-full bg-gold" data-dot="0"></span>
+        <span class="w-2 h-2 rounded-full bg-dim" data-dot="1"></span>
+        <span class="w-2 h-2 rounded-full bg-dim" data-dot="2"></span>
+        <span class="w-2 h-2 rounded-full bg-dim" data-dot="3"></span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="onboardSkip()" class="flex-1 py-2.5 rounded-xl border border-dim text-textm text-sm">跳過</button>
+        <button onclick="onboardNext()" id="onboardNextBtn" class="flex-1 py-2.5 rounded-xl gradient-gold text-bg text-sm font-bold">下一頁</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- K 線 Modal（從結果點進去的備用） -->
 <div class="modal-overlay" id="chartModal">
@@ -867,6 +906,7 @@ function renderCards(results) {
       return `<span class="chip ${on?'chip-on':'chip-off'}">${on?'✓ ':''}${s}</span>`;
     }).join('');
 
+    const isFav = isFavorite(r.code);
     return `
     <div class="stock-card bg-card2/40 border border-dim rounded-2xl overflow-hidden ${hot?'card-glow':''}" onclick="goToChart('${r.code}','${r.name}')">
       <div class="h-1 w-full ${stripCls}"></div>
@@ -878,6 +918,7 @@ function renderCards(results) {
               <span class="text-lg font-bold text-textd">${r.name}</span>
               <span class="num text-xs text-gold">${r.code}</span>
               ${hot?'<span class="text-[10px] font-bold bg-rise/20 text-rise px-2 py-0.5 rounded">HOT</span>':''}
+              <button onclick="event.stopPropagation();toggleFavorite('${r.code}','${r.name.replace(/'/g, '&#39;')}',this)" class="ml-auto text-base px-1 leading-none ${isFav?'text-gold':'text-textl'} hover:text-gold transition" title="${isFav?'移除收藏':'加入收藏'}">${isFav?'★':'☆'}</button>
             </div>
             <div class="flex items-baseline gap-2 flex-wrap">
               <span class="num text-2xl md:text-3xl font-bold text-textd">${r.price!=null?fmtNum(r.price):'-'}</span>
@@ -1337,6 +1378,196 @@ function startMarketRefresh() {
 }
 
 // ============================================================
+//  v3.2 收藏夾 (Favorites)
+// ============================================================
+let favorites = [];  // [{code, name, addedAt}]
+
+function loadFavorites() {
+  try { const s = localStorage.getItem('favorites_v1'); if (s) favorites = JSON.parse(s); } catch(e) {}
+  updateFavCount();
+}
+
+function saveFavorites() { localStorage.setItem('favorites_v1', JSON.stringify(favorites)); updateFavCount(); }
+
+function isFavorite(code) { return favorites.some(f => f.code === code); }
+
+function toggleFavorite(code, name, btnEl) {
+  if (isFavorite(code)) {
+    favorites = favorites.filter(f => f.code !== code);
+    if (btnEl) { btnEl.textContent='☆'; btnEl.className=btnEl.className.replace('text-gold','text-textl'); btnEl.title='加入收藏'; }
+  } else {
+    favorites.push({code, name, addedAt: Date.now()});
+    if (btnEl) { btnEl.textContent='★'; btnEl.className=btnEl.className.replace('text-textl','text-gold'); btnEl.title='移除收藏'; }
+  }
+  saveFavorites();
+  // 如果在收藏分頁，重畫
+  if (!document.querySelector('[data-tab-panel="favorites"]').classList.contains('hidden')) {
+    renderFavorites();
+  }
+}
+
+function updateFavCount() {
+  const el = document.getElementById('favCount');
+  if (el) el.textContent = favorites.length + ' 檔';
+}
+
+async function refreshFavorites() {
+  if (!favorites.length) { renderFavorites(); return; }
+  const codes = favorites.map(f => f.code);
+  try {
+    const r = await fetch('/api/realtime', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({codes})
+    });
+    const d = await r.json();
+    const quotes = d.quotes || {};
+    favorites.forEach(f => {
+      const q = quotes[f.code];
+      if (q && q.price > 0) {
+        f.price = q.price;
+        f.change_pct = q.change_pct;
+        f.high = q.high;
+        f.low = q.low;
+        f.volume = q.volume;
+      }
+    });
+  } catch(e) {}
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const el = document.getElementById('favList');
+  if (!el) return;
+  if (!favorites.length) {
+    el.innerHTML = `<div class="text-center py-12 text-textm">
+      <div class="text-4xl mb-3">☆</div>
+      <p class="text-sm">還沒有收藏的股票</p>
+      <p class="text-xs text-textl mt-1">到「篩選」分頁，從結果卡片右上角點 ☆ 加入</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = favorites.map((f, i) => {
+    const hasQuote = f.price != null;
+    const chgCls = (f.change_pct || 0) >= 0 ? 'text-rise' : 'text-fall';
+    const chgSign = (f.change_pct || 0) >= 0 ? '+' : '';
+    return `<div class="stock-card bg-card2/40 border border-dim rounded-2xl p-4 flex items-center gap-3" onclick="goToChart('${f.code}','${f.name.replace(/'/g, '&#39;')}')">
+      <button onclick="event.stopPropagation();toggleFavorite('${f.code}','${f.name.replace(/'/g, '&#39;')}');" class="text-gold text-xl flex-shrink-0" title="移除收藏">★</button>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="text-base font-bold text-textd">${f.name}</span>
+          <span class="num text-xs text-gold">${f.code}</span>
+        </div>
+        ${hasQuote ? `
+          <div class="flex items-baseline gap-2 flex-wrap mt-1">
+            <span class="num text-xl font-bold text-textd">${fmtNum(f.price)}</span>
+            <span class="num text-sm font-semibold ${chgCls}">${chgSign}${f.change_pct.toFixed(2)}%</span>
+            <span class="num text-[10px] text-textl">高 ${fmtNum(f.high)} 低 ${fmtNum(f.low)}</span>
+          </div>
+        ` : '<div class="text-xs text-textl mt-1">尚未取得報價（點上方「重新整理」）</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  v3.2 記憶上次設定 (Prefs)
+// ============================================================
+function savePrefs() {
+  const prefs = {
+    mode: document.querySelector('input[name="mode"]:checked')?.value,
+    stratMode: document.querySelector('input[name="stratMode"]:checked')?.value,
+    minPrice: document.getElementById('minPrice')?.value,
+    minVol: document.getElementById('minVol')?.value,
+    preTopN: document.getElementById('preTopN')?.value,
+    topN: document.getElementById('topN')?.value,
+    advChecked: [...document.querySelectorAll('.adv-cb:checked')].map(cb => cb.value),
+  };
+  try { localStorage.setItem('prefs_v1', JSON.stringify(prefs)); } catch(e) {}
+}
+
+function loadPrefs() {
+  try {
+    const s = localStorage.getItem('prefs_v1');
+    if (!s) return;
+    const p = JSON.parse(s);
+    if (p.mode) {
+      const r = document.querySelector(`input[name="mode"][value="${p.mode}"]`);
+      if (r) { r.checked = true; toggleMode(); }
+    }
+    if (p.stratMode) {
+      const r = document.querySelector(`input[name="stratMode"][value="${p.stratMode}"]`);
+      if (r) r.checked = true;
+    }
+    if (p.minPrice) document.getElementById('minPrice').value = p.minPrice;
+    if (p.minVol) document.getElementById('minVol').value = p.minVol;
+    if (p.preTopN) document.getElementById('preTopN').value = p.preTopN;
+    if (p.topN) document.getElementById('topN').value = p.topN;
+    if (Array.isArray(p.advChecked)) {
+      p.advChecked.forEach(key => {
+        const cb = document.querySelector(`.adv-cb[value="${key}"]`);
+        if (cb) cb.checked = true;
+      });
+    }
+  } catch(e) {}
+}
+
+// 監聽所有設定變動自動儲存
+function bindPrefsAutoSave() {
+  document.querySelectorAll('input[name="mode"], input[name="stratMode"]').forEach(r => r.addEventListener('change', savePrefs));
+  ['minPrice','minVol','preTopN','topN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', savePrefs);
+  });
+  // adv-cb 動態生成，用事件代理
+  document.getElementById('advFilters')?.addEventListener('change', e => {
+    if (e.target.classList.contains('adv-cb')) savePrefs();
+  });
+}
+
+// ============================================================
+//  v3.2 首次使用導覽 (Onboarding)
+// ============================================================
+const ONBOARD_PAGES = [
+  { icon: '📈', title: '歡迎使用飆股篩選器', body: '專為台股設計的技術分析工具，整合換手率、乖離率、連續法人買超等真飆股特徵，2~3 秒掃描全市場 2000+ 檔。' },
+  { icon: '🎯', title: '5 大策略模式', body: '<b class="text-rise">飆股</b>（追熱錢） / <b class="text-fall">高勝率</b>（均值回歸） / <b class="text-orange-400">當沖</b> / <b class="text-yellow-300">隔日沖</b> / <b class="text-gold">全模式合併</b>。新手建議從「飆股」模式開始。' },
+  { icon: '💯', title: '怎麼看得分', body: '每檔股票會根據選的策略模式評分（滿分 7 分）：<br><b class="text-rise">5+ 飆股候選</b> / <b class="text-fall">3-4 強勢觀察</b> / &lt;3 觀望。<br>點任意卡片可看 K 線圖。' },
+  { icon: '★', title: '收藏與每日更新', body: '結果卡片右上點 ☆ 加入「收藏」分頁追蹤。<br>系統<b class="text-gold">每天 15:00 自動更新</b>盤後資料，盤中價格<b class="text-gold">每 30 秒</b>自動刷新。' },
+];
+
+let onboardPage = 0;
+
+function showOnboarding() {
+  onboardPage = 0;
+  renderOnboardPage();
+  document.getElementById('onboardOverlay').classList.add('show');
+}
+
+function renderOnboardPage() {
+  const p = ONBOARD_PAGES[onboardPage];
+  document.getElementById('onboardTitle').textContent = p.icon;
+  document.getElementById('onboardHead').textContent = p.title;
+  document.getElementById('onboardBody').innerHTML = p.body;
+  document.querySelectorAll('#onboardOverlay [data-dot]').forEach((d, i) => {
+    d.className = 'w-2 h-2 rounded-full ' + (i === onboardPage ? 'bg-gold' : 'bg-dim');
+  });
+  document.getElementById('onboardNextBtn').textContent = (onboardPage === ONBOARD_PAGES.length - 1) ? '開始使用' : '下一頁';
+}
+
+function onboardNext() {
+  if (onboardPage < ONBOARD_PAGES.length - 1) {
+    onboardPage++;
+    renderOnboardPage();
+  } else {
+    onboardSkip();
+  }
+}
+
+function onboardSkip() {
+  document.getElementById('onboardOverlay').classList.remove('show');
+  localStorage.setItem('onboard_done_v1', '1');
+}
+
+// ============================================================
 //  Init
 // ============================================================
 checkMarketStatus().then(() => { if (isMarketOpen) startAutoRefresh(); });
@@ -1346,6 +1577,23 @@ loadLocal();
 initAdvFilters();
 setupSearch('searchInp', 'searchDrop', addToList);
 setupSearch('chartSearchInp', 'chartSearchDrop', setChartSearch);
+
+// v3.2 init
+loadFavorites();
+loadPrefs();
+bindPrefsAutoSave();
+
+// 首次使用顯示導覽
+if (!localStorage.getItem('onboard_done_v1')) {
+  setTimeout(showOnboarding, 600);
+}
+
+// switchTab 觸發 favorites 自動刷新
+const _origSwitchTab = switchTab;
+switchTab = function(name) {
+  _origSwitchTab(name);
+  if (name === 'favorites') refreshFavorites();
+};
 </script>
 </body>
 </html>
