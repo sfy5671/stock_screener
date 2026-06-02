@@ -420,12 +420,21 @@ tailwind.config = {
   <div class="bg-card border border-dim/60 rounded-2xl p-5">
     <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
       <h2 class="text-base font-semibold flex items-center gap-2"><span class="text-gold">★</span> 我的收藏</h2>
-      <div class="flex gap-2 items-center">
+      <div class="flex gap-2 items-center flex-wrap">
         <span id="favCount" class="text-xs px-3 py-1 rounded-full bg-gold/10 text-gold border border-gold/30 num">0 檔</span>
-        <button onclick="refreshFavorites()" class="text-xs px-3 py-1.5 rounded-md bg-card2 hover:bg-card2/70 border border-dim text-textd">🔄 重新整理</button>
+        <button onclick="refreshFavorites()" class="text-xs px-2.5 py-1 rounded-md bg-card2 hover:bg-card2/70 border border-dim text-textd">🔄 重新整理</button>
+        <button onclick="exportBackup()" class="text-xs px-2.5 py-1 rounded-md bg-card2 hover:bg-card2/70 border border-dim text-textd" title="備份到 JSON 檔">⬇ 備份</button>
+        <button onclick="importBackup()" class="text-xs px-2.5 py-1 rounded-md bg-card2 hover:bg-card2/70 border border-dim text-textd" title="從 JSON 檔還原">⬆ 還原</button>
       </div>
     </div>
     <p class="text-xs text-textm mb-3">從「篩選」結果卡片上點 ★ 加入收藏。盤中會自動更新即時報價（30 秒）。</p>
+    <div class="bg-card2/40 border border-dim rounded-lg p-3 mb-3 text-[11px] text-textm flex items-start gap-2">
+      <span class="text-gold flex-shrink-0">ℹ️</span>
+      <div>
+        <b class="text-textd">資料儲存在這台裝置的瀏覽器</b>，換手機或清除瀏覽器資料會消失。<br>
+        建議定期用「⬇ 備份」匯出 JSON 檔留存，換裝置或重灌時用「⬆ 還原」帶回設定。
+      </div>
+    </div>
     <div id="favList" class="space-y-3"></div>
   </div>
 </section>
@@ -1624,6 +1633,61 @@ function renderFavorites() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ============================================================
+//  v3.2 備份 / 還原 (匯出 / 匯入 JSON)
+// ============================================================
+function exportBackup() {
+  const data = {
+    app: 'stock-screener',
+    version: '1',
+    exported_at: new Date().toISOString(),
+    favorites: JSON.parse(localStorage.getItem('favorites_v1') || '[]'),
+    stocks: JSON.parse(localStorage.getItem('stocks3') || '[]'),
+    prefs: JSON.parse(localStorage.getItem('prefs_v1') || '{}'),
+  };
+  const summary = `${data.favorites.length} 檔收藏 + ${data.stocks.length} 檔自選 + ${Object.keys(data.prefs).length>0?'使用者設定':'(無設定)'}`;
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  a.href = url;
+  a.download = `飆股篩選器_備份_${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  setTimeout(() => alert(`✅ 已匯出備份檔：\n• ${summary}\n• 請妥善保存（換裝置時用「⬆ 還原」匯入）`), 100);
+}
+
+function importBackup() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (data.app !== 'stock-screener') {
+        if (!confirm('這個檔案不是「飆股篩選器」的備份檔，要繼續嗎？')) return;
+      }
+      const summary = [];
+      if (Array.isArray(data.favorites) && data.favorites.length) summary.push(`${data.favorites.length} 檔收藏`);
+      if (Array.isArray(data.stocks) && data.stocks.length) summary.push(`${data.stocks.length} 檔自選`);
+      if (data.prefs && Object.keys(data.prefs).length) summary.push('使用者設定');
+      if (!summary.length) { alert('備份檔內沒有資料'); return; }
+      if (!confirm(`還原後會覆蓋目前的資料，要繼續嗎？\n\n備份內容：\n• ${summary.join('\n• ')}`)) return;
+      if (Array.isArray(data.favorites)) localStorage.setItem('favorites_v1', JSON.stringify(data.favorites));
+      if (Array.isArray(data.stocks)) localStorage.setItem('stocks3', JSON.stringify(data.stocks));
+      if (data.prefs) localStorage.setItem('prefs_v1', JSON.stringify(data.prefs));
+      alert('✅ 還原完成，將重新載入頁面套用設定...');
+      location.reload();
+    } catch(err) {
+      alert('❌ 匯入失敗：' + err.message);
+    }
+  };
+  input.click();
 }
 
 // ============================================================
