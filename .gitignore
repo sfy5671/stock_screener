@@ -9,3 +9,12 @@ __pycache__/
 !.cache/company_capital.json
 !.cache/inst_hist_5.json
 !.cache/margin.json
+
+# Store package zips / 編譯產物 不上 git
+*.zip
+*.aab
+*.apk
+*.apk.idsig
+build_apk/node_modules/
+build_apk/android/
+build_apk/dist/
