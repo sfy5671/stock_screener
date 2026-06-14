@@ -16,7 +16,10 @@ from datetime import datetime, timedelta
 import warnings
 import time
 
-# 修復 Windows 終端機 UTF-8 輸出（僅在直接執行時）
+# SSL verify 切換:本機 Norton MITM 用 LOCAL_DEV_INSECURE_SSL=1 規避,production 預設驗 SSL
+_VERIFY = os.environ.get('LOCAL_DEV_INSECURE_SSL', '0') != '1'
+
+# 修復 Windows 終端機 UTF-8 輸出(僅在直接執行時)
 if sys.stdout and hasattr(sys.stdout, 'buffer'):
     try:
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -42,7 +45,7 @@ def fetch_twse_daily_all():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     try:
         url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
-        r = requests.get(url, timeout=20, verify=False)
+        r = requests.get(url, timeout=20, verify=_VERIFY)
         data = r.json()
         result = []
         for item in data:
@@ -82,7 +85,7 @@ def fetch_tpex_daily_all():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     try:
         url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
-        r = requests.get(url, timeout=20, verify=False)
+        r = requests.get(url, timeout=20, verify=_VERIFY)
         data = r.json()
         result = []
         for item in data:
@@ -177,7 +180,7 @@ def fetch_twse_stocks():
     # 方法1: OpenAPI JSON
     try:
         url = "https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=15, verify=_VERIFY)
         data = r.json()
         result = {}
         for item in data:
@@ -213,7 +216,7 @@ def fetch_tpex_stocks():
     # 方法1: OpenAPI
     try:
         url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=15, verify=_VERIFY)
         data = r.json()
         result = {}
         for item in data:
@@ -236,7 +239,7 @@ def fetch_tpex_stocks():
         tw_year = today.year - 1911
         date_str = f"{tw_year}/{today.month:02d}/{today.day:02d}"
         url = f"https://www.tpex.org.tw/web/stock/aftertrading/otc_quotes_no1430/stk_wn1430_result.php?l=zh-tw&d={date_str}&se=EW&_=1"
-        r = requests.get(url, timeout=10, verify=False)
+        r = requests.get(url, timeout=10, verify=_VERIFY)
         data = r.json()
         result = {}
         for row in data.get("aaData", []):
@@ -384,7 +387,7 @@ def fetch_institutional_data():
     try:
         today_tw = datetime.now().strftime("%Y%m%d")
         url = f"https://www.twse.com.tw/fund/T86?response=json&date={today_tw}&selectType=ALL"
-        r = requests.get(url, timeout=15, verify=False)
+        r = requests.get(url, timeout=15, verify=_VERIFY)
         data = r.json()
         for row in data.get("data", []):
             code = str(row[0]).strip()
@@ -449,7 +452,7 @@ def fetch_basic_indicators():
     result = {}
     try:
         url = "https://openapi.twse.com.tw/v1/exchangeReport/BWIBBU_ALL"
-        r = requests.get(url, timeout=8, verify=False)
+        r = requests.get(url, timeout=8, verify=_VERIFY)
         for item in r.json():
             code = str(item.get("Code", "")).strip()
             if not code or len(code) != 4 or not code.isdigit():
@@ -467,7 +470,7 @@ def fetch_basic_indicators():
     # 上櫃：本益比殖利率股價淨值比
     try:
         url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_peratio_analysis"
-        r = requests.get(url, timeout=8, verify=False)
+        r = requests.get(url, timeout=8, verify=_VERIFY)
         for item in r.json():
             code = str(item.get("SecuritiesCompanyCode", "")).strip()
             if not code or len(code) != 4 or not code.isdigit():
@@ -541,7 +544,7 @@ def fetch_company_capital():
         "https://openapi.twse.com.tw/v1/opendata/t187ap03_O",
     ):
         try:
-            r = requests.get(url, timeout=8, verify=False)
+            r = requests.get(url, timeout=8, verify=_VERIFY)
             for item in r.json():
                 code = str(item.get("公司代號", "")).strip()
                 if not code or len(code) != 4 or not code.isdigit():
@@ -632,7 +635,7 @@ def fetch_institutional_history(days=5):
         date_str = d.strftime("%Y%m%d")
         try:
             url = f"https://www.twse.com.tw/fund/T86?response=json&date={date_str}&selectType=ALL"
-            r = requests.get(url, timeout=6, verify=False)
+            r = requests.get(url, timeout=6, verify=_VERIFY)
             data = r.json()
             rows = data.get("data") or []
             if not rows:
@@ -734,7 +737,7 @@ def fetch_margin_data():
         date_str = d.strftime("%Y%m%d")
         try:
             url = f"https://www.twse.com.tw/exchangeReport/MI_MARGN?response=json&date={date_str}&selectType=ALL"
-            r = requests.get(url, timeout=8, verify=False)
+            r = requests.get(url, timeout=8, verify=_VERIFY)
             data = r.json()
             tables = data.get("tables") or []
             # 找含「融資融券彙總」標題的 table（通常是最後一個）
@@ -1383,7 +1386,7 @@ def get_realtime_quotes(codes):
         ex_ch = "|".join(f"tse_{c}.tw" for c in batch)
         try:
             url = f"https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={ex_ch}"
-            r = requests.get(url, timeout=10, verify=False)
+            r = requests.get(url, timeout=10, verify=_VERIFY)
             data = r.json()
             for item in data.get("msgArray", []):
                 code = item.get("c", "")
@@ -1446,7 +1449,7 @@ def get_market_index():
     # 大盤加權指數
     try:
         url = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_t00.tw"
-        r = requests.get(url, timeout=8, verify=False)
+        r = requests.get(url, timeout=8, verify=_VERIFY)
         d = r.json()
         for item in d.get("msgArray", []):
             price = float(item.get("z", "0").replace("-", "0"))
@@ -1471,7 +1474,7 @@ def get_market_index():
     try:
         url = "https://mis.taifex.com.tw/futures/api/getQuoteList"
         r = requests.post(url, json={"MarketType": "0", "CID": "TXF"},
-                          timeout=8, verify=False)
+                          timeout=8, verify=_VERIFY)
         d = r.json()
         rows = d.get("RtData", {}).get("QuoteList", [])
         if rows:

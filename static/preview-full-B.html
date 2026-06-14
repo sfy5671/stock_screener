@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飆股篩選器 v3.0</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='0' y='20' font-size='20'%3E🚀%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a1628;
+            --card-bg: #14233d;
+            --accent-gold: #d4af37;
+            --red-rise: #ef4444;
+            --green-fall: #22c55e;
+        }
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background-color: var(--primary-bg);
+            color: #e2e8f0; /* light gray text */
+        }
+        .font-mono-numbers {
+            font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        }
+        .card-glow {
+            box-shadow: 0 0px 15px rgba(212, 175, 55, 0.2), 0 0px 5px rgba(212, 175, 55, 0.1);
+        }
+        .card-border-gold {
+            border: 1px solid var(--accent-gold);
+        }
+        .tab-active {
+            border-bottom: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+        }
+        .btn-gradient-gold {
+            background-image: linear-gradient(to right, #eab308, var(--accent-gold), #eab308); /* Tailwind's yellow-500 equivalent for gold gradient */
+            color: #1a202c; /* Dark text for gold button */
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3d5b; /* Darker blue for thumb */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a5074; /* Lighter blue on hover */
+        }
+    </style>
+</head>
+<body class="min-h-screen pt-16 font-sans text-gray-200">
+
+    <!-- 固定頂部 -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#0a1628] to-[#14233d] shadow-lg py-3">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-baseline space-x-2">
+                <h1 class="text-3xl font-bold text-gray-50">飆股篩選器 v3.0</h1>
+                <span class="text-base text-gray-400">PWA App</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-gray-700 px-3 py-1 rounded-full text-sm">
+                <span id="market-status-dot" class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                <span id="market-status-text">盤中</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 分頁列 -->
+    <nav class="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-[#0a1628] to-[#14233d] shadow-md">
+        <div class="max-w-6xl mx-auto px-4 flex justify-around border-b border-gray-700">
+            <button class="flex-1 py-3 text-lg font-medium text-gray-400 hover:text-gray-200 tab-item" data-tab="analysis">
+                篩選分析
+            </button>
+            <button class="flex-1 py-3 text-lg font-medium text-gray-400 hover:text-gray-200 tab-item" data-tab="market">
+                大盤期貨
+            </button>
+            <button class="flex-1 py-3 text-lg font-medium text-gray-400 hover:text-gray-200 tab-item" data-tab="kline">
+                K 線圖
+            </button>
+            <button class="flex-1 py-3 text-lg font-medium text-gray-400 hover:text-gray-200 tab-item" data-tab="strategy">
+                策略說明
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主內容區塊 -->
+    <main class="max-w-6xl mx-auto px-4 py-8 pt-10">
+
+        <!-- TAB 1：篩選分析 -->
+        <section id="analysis" class="tab-content space-y-8">
+            <!-- 區塊 1 — 篩選模式 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl border border-transparent transition-all duration-300">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-50">📋 篩選模式</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- 全市場快速篩選 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="filterMode" value="allMarket" class="hidden peer" checked>
+                        <div class="p-6 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 relative">
+                            <h3 class="text-xl font-semibold text-gray-50 mb-2">全市場快速篩選</h3>
+                            <p class="text-sm text-gray-400">從證交所批量抓取，2~3 秒預篩 + 深度分析</p>
+                            <div class="absolute top-4 right-4 w-4 h-4 rounded-full border border-gray-500 peer-checked:bg-[var(--accent-gold)] peer-checked:border-[var(--accent-gold)]"></div>
+                        </div>
+                    </label>
+                    <!-- 自選股票篩選 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="filterMode" value="watchlist" class="hidden peer">
+                        <div class="p-6 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 relative">
+                            <h3 class="text-xl font-semibold text-gray-50 mb-2">自選股票篩選</h3>
+                            <p class="text-sm text-gray-400">手動指定要分析的股票</p>
+                            <div class="absolute top-4 right-4 w-4 h-4 rounded-full border border-gray-500 peer-checked:bg-[var(--accent-gold)] peer-checked:border-[var(--accent-gold)]"></div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 全市場模式設定 -->
+                <div id="allMarketSettings" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="minPrice" class="block text-sm font-medium text-gray-300 mb-1">最低股價</label>
+                            <input type="number" id="minPrice" value="10" min="1" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] font-mono-numbers text-gray-50">
+                        </div>
+                        <div>
+                            <label for="minVolume" class="block text-sm font-medium text-gray-300 mb-1">最低成交量 (張)</label>
+                            <input type="number" id="minVolume" value="100" min="1" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] font-mono-numbers text-gray-50">
+                        </div>
+                        <div>
+                            <label for="preFilterCount" class="block text-sm font-medium text-gray-300 mb-1">預篩取前 N 檔</label>
+                            <input type="number" id="preFilterCount" value="200" min="10" class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] font-mono-numbers text-gray-50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 區塊 2 — 策略模式 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-50">⚙ 策略模式</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    <!-- 飆股 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="strategyMode" value="飆股" class="hidden peer" checked>
+                        <div class="p-4 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 text-center">
+                            <span class="inline-block bg-[var(--red-rise)] text-white text-xs font-semibold px-2 py-0.5 rounded-full mb-2">飆股</span>
+                            <h3 class="text-lg font-semibold text-gray-50">飆股</h3>
+                            <p class="text-xs text-gray-400">均線/換手率/乖離率/連續法人/底部突破</p>
+                        </div>
+                    </label>
+                    <!-- 高勝率 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="strategyMode" value="高勝率" class="hidden peer">
+                        <div class="p-4 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 text-center">
+                            <span class="inline-block bg-[var(--green-fall)] text-white text-xs font-semibold px-2 py-0.5 rounded-full mb-2">高勝率</span>
+                            <h3 class="text-lg font-semibold text-gray-50">高勝率</h3>
+                            <p class="text-xs text-gray-400">RSI2/W%R/布林反彈/法人共識</p>
+                        </div>
+                    </label>
+                    <!-- 當沖 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="strategyMode" value="當沖" class="hidden peer">
+                        <div class="p-4 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 text-center">
+                            <span class="inline-block bg-orange-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full mb-2">當沖</span>
+                            <h3 class="text-lg font-semibold text-gray-50">當沖</h3>
+                            <p class="text-xs text-gray-400">量能/振幅/開盤突破/VWAP</p>
+                        </div>
+                    </label>
+                    <!-- 隔日沖 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="strategyMode" value="隔日沖" class="hidden peer">
+                        <div class="p-4 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 text-center">
+                            <span class="inline-block bg-yellow-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full mb-2">隔日沖</span>
+                            <h3 class="text-lg font-semibold text-gray-50">隔日沖</h3>
+                            <p class="text-xs text-gray-400">強勢收盤/爆量/漲停/突破</p>
+                        </div>
+                    </label>
+                    <!-- 全模式合併 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="strategyMode" value="全模式合併" class="hidden peer">
+                        <div class="p-4 rounded-2xl border border-gray-700 bg-gray-800/50 peer-checked:card-border-gold peer-checked:card-glow transition-all duration-300 text-center">
+                            <span class="inline-block bg-cyan-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full mb-2">合併</span>
+                            <h3 class="text-lg font-semibold text-gray-50">全模式合併</h3>
+                            <p class="text-xs text-gray-400">四種策略總和</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="mb-6 flex items-center space-x-4">
+                    <label for="displayCount" class="text-base font-medium text-gray-300">最終顯示前</label>
+                    <select id="displayCount" class="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] text-gray-50">
+                        <option value="10">10 檔</option>
+                        <option value="20" selected>20 檔</option>
+                        <option value="50">50 檔</option>
+                        <option value="100">100 檔</option>
+                    </select>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4 text-gray-50">進階條件 (可選)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">近期漲停板</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">連續上漲</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">創新高</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">量縮整理</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">跳空上漲</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">週漲幅達標</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">月漲幅達標</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-base text-gray-300">連續量增</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 區塊 3 — 開始篩選 CTA -->
+            <div class="text-center space-y-4">
+                <button class="btn-gradient-gold text-xl font-bold px-12 py-4 rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300">
+                    🚀 開始篩選分析
+                </button>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div class="bg-gradient-to-r from-yellow-400 to-[var(--accent-gold)] h-2.5 rounded-full w-[45%] text-xs flex items-center justify-end pr-2 text-gray-900 font-semibold" style="width: 45%;">45%</div>
+                </div>
+                <p class="text-sm text-gray-400">篩選進度：正在分析法人買超數據...</p>
+            </div>
+
+            <!-- 區塊 4 — 結果摘要 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow-inner-xl flex flex-col items-center justify-center border border-gray-700 text-center">
+                    <p class="text-4xl font-bold text-[var(--red-rise)] font-mono-numbers">12</p>
+                    <p class="text-sm text-gray-400">飆股候選</p>
+                </div>
+                <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow-inner-xl flex flex-col items-center justify-center border border-gray-700 text-center">
+                    <p class="text-4xl font-bold text-[var(--green-fall)] font-mono-numbers">25</p>
+                    <p class="text-sm text-gray-400">強勢股</p>
+                </div>
+                <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow-inner-xl flex flex-col items-center justify-center border border-gray-700 text-center">
+                    <p class="text-4xl font-bold text-yellow-500 font-mono-numbers">50</p>
+                    <p class="text-sm text-gray-400">觀望</p>
+                </div>
+                <div class="bg-[var(--card-bg)] p-4 rounded-2xl shadow-inner-xl flex flex-col items-center justify-center border border-gray-700 text-center">
+                    <p class="text-4xl font-bold text-[var(--accent-gold)] font-mono-numbers">87</p>
+                    <p class="text-sm text-gray-400">分析完成</p>
+                </div>
+            </div>
+
+            <!-- 區塊 5 — 結果列表 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-50 flex items-center gap-2">🎯 篩選結果</h2>
+                    <select class="p-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] text-gray-50">
+                        <option>全部</option>
+                        <option>飆股</option>
+                        <option>關注</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 結果卡片 - 2330 台積電 (飆股) -->
+                    <a href="#" class="block group transform hover:-translate-y-1 hover:border-[var(--accent-gold)] hover:card-glow transition-all duration-300 relative bg-gray-800/50 rounded-2xl shadow-lg overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-[var(--red-rise)]"></div>
+                        <div class="p-5 pt-7">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-xl font-bold text-gray-50">台積電</h3>
+                                    <span class="text-sm text-gray-400 font-mono-numbers">2330</span>
+                                    <span class="bg-[var(--red-rise)] text-white text-xs font-semibold px-2 py-0.5 rounded-full">HOT</span>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-[var(--accent-gold)] flex items-center justify-center text-sm font-bold text-gray-900 font-mono-numbers">6/7</div>
+                            </div>
+                            <div class="flex items-baseline mb-3">
+                                <span class="text-4xl font-bold text-[var(--accent-gold)] mr-2 font-mono-numbers">885.0</span>
+                                <span class="text-lg font-semibold text-[var(--red-rise)] mr-2 font-mono-numbers">+3.5%</span>
+                                <span class="text-sm text-[var(--red-rise)] mr-1 font-mono-numbers">+7.2% (週)</span>
+                                <span class="text-sm text-[var(--red-rise)] font-mono-numbers">+15.8% (月)</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mb-4">
+                                <span class="bg-blue-600/30 text-blue-300 px-3 py-1 rounded-full text-center">RSI 65</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">K/D 75/68</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center">量比 2.3x</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center">換手率 5.8%</span>
+                                <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-full text-center">乖離率 +8.5%</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">本益比 28.5</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center col-span-2">外資 +1,250 張</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center col-span-2">投信 +380 張</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center col-span-4">連續法人買超 4 日</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">均線多頭</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">站上MA20</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">換手活躍</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">乖離適中</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">法人連買</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">爆量突破</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">量能放大</span>
+                            </div>
+                            <p class="text-right text-xs text-gray-500 group-hover:text-[var(--accent-gold)]">點擊查看 K 線</p>
+                        </div>
+                    </a>
+
+                    <!-- 結果卡片 - 2454 聯發科 (強勢) -->
+                    <a href="#" class="block group transform hover:-translate-y-1 hover:border-[var(--accent-gold)] hover:card-glow transition-all duration-300 relative bg-gray-800/50 rounded-2xl shadow-lg overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-[var(--green-fall)]"></div>
+                        <div class="p-5 pt-7">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-xl font-bold text-gray-50">聯發科</h3>
+                                    <span class="text-sm text-gray-400 font-mono-numbers">2454</span>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-[var(--green-fall)] flex items-center justify-center text-sm font-bold text-gray-900 font-mono-numbers">4/7</div>
+                            </div>
+                            <div class="flex items-baseline mb-3">
+                                <span class="text-4xl font-bold text-[var(--accent-gold)] mr-2 font-mono-numbers">1350.0</span>
+                                <span class="text-lg font-semibold text-[var(--red-rise)] mr-2 font-mono-numbers">+1.1%</span>
+                                <span class="text-sm text-[var(--red-rise)] mr-1 font-mono-numbers">+3.0% (週)</span>
+                                <span class="text-sm text-yellow-500 font-mono-numbers">+0.5% (月)</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mb-4">
+                                <span class="bg-blue-600/30 text-blue-300 px-3 py-1 rounded-full text-center">RSI 70</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">K/D 80/72</span>
+                                <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-full text-center">量比 1.5x</span>
+                                <span class="bg-yellow-600/30 text-yellow-300 px-3 py-1 rounded-full text-center">換手率 2.1%</span>
+                                <span class="bg-green-600/30 text-green-300 px-3 py-1 rounded-full text-center">乖離率 +3.2%</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">本益比 25.0</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center col-span-2">外資 +800 張</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center col-span-2">投信 -120 張</span>
+                                <span class="bg-[var(--red-rise)]/30 text-[var(--red-rise)] px-3 py-1 rounded-full text-center col-span-4">連續法人買超 2 日</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">均線多頭</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">站上MA20</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">換手活躍</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">乖離適中</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">法人連買</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">爆量突破</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">量能放大</span>
+                            </div>
+                            <p class="text-right text-xs text-gray-500 group-hover:text-[var(--accent-gold)]">點擊查看 K 線</p>
+                        </div>
+                    </a>
+
+                    <!-- 結果卡片 - 6446 藥華藥 (觀望) -->
+                    <a href="#" class="block group transform hover:-translate-y-1 hover:border-[var(--accent-gold)] hover:card-glow transition-all duration-300 relative bg-gray-800/50 rounded-2xl shadow-lg overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-yellow-500"></div>
+                        <div class="p-5 pt-7">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-xl font-bold text-gray-50">藥華藥</h3>
+                                    <span class="text-sm text-gray-400 font-mono-numbers">6446</span>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-sm font-bold text-gray-900 font-mono-numbers">2/7</div>
+                            </div>
+                            <div class="flex items-baseline mb-3">
+                                <span class="text-4xl font-bold text-[var(--accent-gold)] mr-2 font-mono-numbers">550.0</span>
+                                <span class="text-lg font-semibold text-[var(--green-fall)] mr-2 font-mono-numbers">-0.5%</span>
+                                <span class="text-sm text-[var(--green-fall)] mr-1 font-mono-numbers">-2.8% (週)</span>
+                                <span class="text-sm text-[var(--green-fall)] font-mono-numbers">-8.0% (月)</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm mb-4">
+                                <span class="bg-blue-600/30 text-blue-300 px-3 py-1 rounded-full text-center">RSI 45</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">K/D 50/55</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">量比 0.8x</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">換手率 0.9%</span>
+                                <span class="bg-[var(--green-fall)]/30 text-[var(--green-fall)] px-3 py-1 rounded-full text-center">乖離率 -1.5%</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center">本益比 35.0</span>
+                                <span class="bg-[var(--green-fall)]/30 text-[var(--green-fall)] px-3 py-1 rounded-full text-center col-span-2">外資 -50 張</span>
+                                <span class="bg-[var(--green-fall)]/30 text-[var(--green-fall)] px-3 py-1 rounded-full text-center col-span-2">投信 -20 張</span>
+                                <span class="bg-gray-600/30 text-gray-300 px-3 py-1 rounded-full text-center col-span-4">法人賣超中</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">均線多頭</span>
+                                <span class="bg-[var(--accent-gold)] text-gray-900 text-xs px-3 py-1 rounded-full font-medium">站上MA20</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">換手活躍</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">乖離適中</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">法人連買</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">爆量突破</span>
+                                <span class="border border-gray-600 text-gray-400 text-xs px-3 py-1 rounded-full">量能放大</span>
+                            </div>
+                            <p class="text-right text-xs text-gray-500 group-hover:text-[var(--accent-gold)]">點擊查看 K 線</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2：大盤/期貨 -->
+        <section id="market" class="tab-content hidden space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 加權指數卡片 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-50 flex items-center gap-2">📈 加權指數</h2>
+                        <span class="bg-gray-700 text-gray-400 text-xs px-3 py-1 rounded-full">即時更新 14:30:15</span>
+                    </div>
+                    <div class="flex items-baseline mb-4">
+                        <span class="text-5xl font-bold text-[var(--accent-gold)] mr-4 font-mono-numbers">22340.12</span>
+                        <span class="text-2xl font-semibold text-[var(--red-rise)] mr-2 font-mono-numbers">+320.50</span>
+                        <span class="text-xl font-semibold text-[var(--red-rise)] font-mono-numbers">+1.45%</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400 mb-6">
+                        <span>最高: <span class="text-[var(--red-rise)] font-mono-numbers">22380.00</span></span>
+                        <span>最低: <span class="text-[var(--green-fall)] font-mono-numbers">22100.20</span></span>
+                        <span>時間: <span class="font-mono-numbers">14:28:00</span></span>
+                    </div>
+                    <div class="w-full h-[250px] bg-gray-700 flex items-center justify-center rounded-lg text-gray-400 text-lg">
+                        圖表載入中... (加權指數 K 線)
+                    </div>
+                </div>
+
+                <!-- 台指期卡片 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-50 flex items-center gap-2">📊 台指期</h2>
+                        <span class="bg-gray-700 text-gray-400 text-xs px-3 py-1 rounded-full">即時更新 14:30:15</span>
+                    </div>
+                    <div class="flex items-baseline mb-4">
+                        <span class="text-5xl font-bold text-[var(--accent-gold)] mr-4 font-mono-numbers">22360.00</span>
+                        <span class="text-2xl font-semibold text-[var(--red-rise)] mr-2 font-mono-numbers">+300.00</span>
+                        <span class="text-xl font-semibold text-[var(--red-rise)] font-mono-numbers">+1.35%</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400 mb-6">
+                        <span>最高: <span class="text-[var(--red-rise)] font-mono-numbers">22390.00</span></span>
+                        <span>最低: <span class="text-[var(--green-fall)] font-mono-numbers">22120.00</span></span>
+                        <span>時間: <span class="font-mono-numbers">14:29:00</span></span>
+                    </div>
+                    <div class="w-full h-[250px] bg-gray-700 flex items-center justify-center rounded-lg text-gray-400 text-lg">
+                        圖表載入中... (台指期 K 線)
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-sm text-gray-500 mt-8">盤中每 10 秒自動更新 • 資料來源：證交所/期交所即時 API</p>
+        </section>
+
+        <!-- TAB 3：個股 K 線圖 -->
+        <section id="kline" class="tab-content hidden space-y-8">
+            <!-- 搜尋列卡片 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center gap-4">
+                <label for="stockSearch" class="sr-only">搜尋股票</label>
+                <input type="text" id="stockSearch" placeholder="請輸入股票代號或名稱 (例: 2330 台積電)" class="flex-grow p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-[var(--accent-gold)] focus:ring-1 focus:ring-[var(--accent-gold)] text-gray-50 placeholder-gray-400">
+                <button class="btn-gradient-gold text-base font-semibold px-8 py-3 rounded-xl hover:scale-105 transition-transform duration-300 w-full md:w-auto">
+                    查看 K 線圖
+                </button>
+            </div>
+
+            <!-- K 線圖卡片 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold text-gray-50">2330 台積電 K 線圖</h2>
+                    <div class="flex flex-wrap gap-2 text-sm">
+                        <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition duration-200">1分</button>
+                        <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition duration-200">5分</button>
+                        <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition duration-200">15分</button>
+                        <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition duration-200">30分</button>
+                        <button class="px-4 py-2 rounded-full bg-[var(--accent-gold)] text-gray-900 font-semibold transition duration-200">日K</button>
+                        <button class="px-4 py-2 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition duration-200">週K</button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-x-6 gap-y-2 mb-6">
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-purple-400 bg-gray-700 border-gray-600 rounded focus:ring-purple-400" checked>
+                        <span class="text-purple-400">MA5</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-400 bg-gray-700 border-gray-600 rounded focus:ring-blue-400" checked>
+                        <span class="text-blue-400">MA10</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-yellow-400 bg-gray-700 border-gray-600 rounded focus:ring-yellow-400" checked>
+                        <span class="text-yellow-400">MA20</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-green-400 bg-gray-700 border-gray-600 rounded focus:ring-green-400">
+                        <span class="text-green-400">MA60</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-[var(--accent-gold)] bg-gray-700 border-gray-600 rounded focus:ring-[var(--accent-gold)]">
+                        <span class="text-gray-300">訊號顯示</span>
+                    </label>
+                </div>
+                <div class="w-full h-[420px] bg-gray-700 flex items-center justify-center rounded-lg text-gray-400 text-xl mb-4">
+                    K 線圖表容器
+                </div>
+                <div class="w-full h-[100px] bg-gray-700 flex items-center justify-center rounded-lg text-gray-400 text-lg">
+                    成交量圖表容器
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4：策略說明 -->
+        <section id="strategy" class="tab-content hidden space-y-8">
+            <!-- 飆股策略卡片 (新版說明) -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-50">🔥 飆股策略 (新版說明)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">1.</span> 均線多頭排列 (<span class="font-mono-numbers">MA5 &gt; MA10 &gt; MA20 &gt; MA60</span>)</p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">2.</span> 站上 20 日均線 (<span class="font-mono-numbers">價 &gt; MA20</span>)</p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">3.</span> <span class="text-[var(--red-rise)]">換手率 3~25%</span> (活躍且未過熱)</p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">4.</span> <span class="text-yellow-500">乖離率(MA20) +0~15%</span> (強勢未過熱)</p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">5.</span> <span class="text-[var(--red-rise)]">連續法人買超 3 日以上</span></p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">6.</span> <span class="text-[var(--red-rise)]">爆量突破 20 日新高</span> (<span class="font-mono-numbers">量 > 20日均量1.5x + 收盤創20日新高</span>)</p>
+                    <p class="text-lg text-gray-300"><span class="text-[var(--accent-gold)] font-bold mr-2">7.</span> <span class="text-[var(--red-rise)]">5 日均量 > 20 日均量 1.5x</span> (量能持續放大)</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 高勝率策略卡片 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-50">✅ 高勝率策略</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-300">
+                        <li>RSI2 超賣反彈</li>
+                        <li>W%R 極端超賣</li>
+                        <li>布林通道下軌反彈</li>
+                        <li>KD 黃金交叉</li>
+                        <li>法人共識買超</li>
+                        <li>基本面轉好</li>
+                        <li>財報預期優於市場</li>
+                    </ul>
+                </div>
+                <!-- 當沖策略卡片 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-50">⚡ 當沖策略</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-300">
+                        <li>開盤突破關鍵價位</li>
+                        <li>高量能與振幅</li>
+                        <li>VWAP 支撐或壓力</li>
+                        <li>即時大單買賣力道</li>
+                        <li>主力進出訊號</li>
+                        <li>券商分點買賣超</li>
+                        <li>國際盤面連動</li>
+                    </ul>
+                </div>
+                <!-- 隔日沖策略卡片 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-50">🚀 隔日沖策略</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-300">
+                        <li>強勢收盤 / 鎖漲停</li>
+                        <li>盤中爆量突破</li>
+                        <li>主力鎖碼訊號</li>
+                        <li>法人連續加碼</li>
+                        <li>融資增加 / 融券減少</li>
+                        <li>新聞題材發酵</li>
+                        <li>技術指標高檔鈍化</li>
+                    </ul>
+                </div>
+                <!-- 評分標準小卡 -->
+                <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl flex flex-col justify-center">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-50">⭐ 評分標準</h3>
+                    <p class="text-lg text-[var(--red-rise)]"><span class="font-mono-numbers">5+</span> 分 = 飆股候選</p>
+                    <p class="text-lg text-[var(--green-fall)]"><span class="font-mono-numbers">3~4</span> 分 = 關注</p>
+                    <p class="text-lg text-yellow-500"><span class="font-mono-numbers">&lt;3</span> 分 = 觀望</p>
+                </div>
+            </div>
+
+            <!-- 換手率與乖離率小教學 -->
+            <div class="bg-[var(--card-bg)] p-6 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-50">💡 換手率與乖離率小教學</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-50">🔄 換手率</h3>
+                        <p class="text-lg text-gray-300 mb-2 font-mono-numbers">換手率 = 今日成交量 ÷ 流通股數 × 100%</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-300">
+                            <li><span class="font-mono-numbers">&lt;1%</span> <span class="text-gray-400">冷門</span></li>
+                            <li><span class="font-mono-numbers">1~3%</span> <span class="text-green-400">正常</span></li>
+                            <li><span class="font-mono-numbers">3~10%</span> <span class="text-[var(--red-rise)]">活躍 (飆股甜蜜區)</span></li>
+                            <li><span class="font-mono-numbers">&gt;15%</span> <span class="text-orange-400">過熱 (警示)</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-gray-50">📈 乖離率 (MA20)</h3>
+                        <p class="text-lg text-gray-300 mb-2 font-mono-numbers">乖離率 = (現價 - MA20) ÷ MA20 × 100%</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-300">
+                            <li><span class="font-mono-numbers">+5~15%</span> <span class="text-[var(--red-rise)]">強勢</span></li>
+                            <li><span class="font-mono-numbers">&gt;25%</span> <span class="text-orange-400">過熱 (警示)</span></li>
+                            <li><span class="font-mono-numbers">-5~0%</span> <span class="text-yellow-500">接近均線 (可承接)</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const marketStatusDot = document.getElementById('market-status-dot');
+            const marketStatusText = document.getElementById('market-status-text');
+
+            // Set initial active tab
+            let activeTab = localStorage.getItem('activeTab') || 'analysis';
+            switchTab(activeTab);
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    switchTab(button.dataset.tab);
+                });
+            });
+
+            // Function to switch tabs
+            function switchTab(tabName) {
+                tabContents.forEach(content => {
+                    if (content.id === tabName) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+
+                tabButtons.forEach(button => {
+                    if (button.dataset.tab === tabName) {
+                        button.classList.add('tab-active');
+                        button.classList.add('text-[var(--accent-gold)]');
+                        button.classList.remove('text-gray-400');
+                    } else {
+                        button.classList.remove('tab-active');
+                        button.classList.remove('text-[var(--accent-gold)]');
+                        button.classList.add('text-gray-400');
+                    }
+                });
+                localStorage.setItem('activeTab', tabName);
+            }
+
+            // Radio button glow effect for Filter Mode
+            const filterModeRadios = document.querySelectorAll('input[name="filterMode"]');
+            filterModeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const allMarketSettings = document.getElementById('allMarketSettings');
+                    if (radio.value === 'allMarket') {
+                        allMarketSettings.classList.remove('hidden');
+                    } else {
+                        allMarketSettings.classList.add('hidden');
+                    }
+                });
+            });
+            // Initial check for allMarketSettings visibility
+            if (document.querySelector('input[name="filterMode"][value="allMarket"]').checked) {
+                document.getElementById('allMarketSettings').classList.remove('hidden');
+            } else {
+                document.getElementById('allMarketSettings').classList.add('hidden');
+            }
+
+            // Simulate market status (Taiwan Stock Exchange: 9:00 AM - 1:30 PM)
+            function updateMarketStatus() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                // Taiwan market hours: 9:00 to 13:30
+                const isMarketOpen = (hours > 9 || (hours === 9 && minutes >= 0)) && (hours < 13 || (hours === 13 && minutes <= 30));
+
+                if (isMarketOpen) {
+                    marketStatusDot.classList.remove('bg-gray-500');
+                    marketStatusDot.classList.add('bg-red-500', 'animate-pulse');
+                    marketStatusText.textContent = '盤中 ●';
+                } else {
+                    marketStatusDot.classList.remove('bg-red-500', 'animate-pulse');
+                    marketStatusDot.classList.add('bg-gray-500');
+                    marketStatusText.textContent = '收盤';
+                }
+            }
+            updateMarketStatus();
+            setInterval(updateMarketStatus, 60 * 1000); // Update every minute
+        });
+    </script>
+</body>
+</html>

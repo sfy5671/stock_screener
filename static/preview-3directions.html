@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飆股篩選器 v3.0 — 3 個設計方向比較</title>
+    <meta name="description" content="台股技術分析 App 飆股篩選器 UI 設計方向比較。">
+    <link rel="icon" href="https://placehold.co/32x32">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
+                        noto: ['Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        redish: '#ef4444', // Tailwind red-500
+                        greenish: '#22c55e', // Tailwind green-500
+                        // Direction A
+                        robinhood_bg: '#000000',
+                        robinhood_card: '#1a1a1a',
+                        // Direction B
+                        fugle_bg: '#0a1628',
+                        fugle_card: '#14233d',
+                        fugle_accent: '#d4af37', // Gold
+                        fugle_success: '#34d399', // Green
+                        fugle_warning: '#fbbf24', // Yellow
+                        fugle_neutral: '#60a5fa', // Blue
+                        // Direction C
+                        webull_bg: '#1c1f26',
+                        webull_card: '#252932',
+                        webull_accent: '#ff6b35', // Orange
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base styles for the page */
+        body {
+            @apply bg-gray-900 text-white font-noto;
+        }
+
+        /* Specific styles for stock cards and elements that Tailwind classes alone might not cover easily */
+        .score-circle {
+            @apply w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold;
+        }
+
+        .score-circle-a {
+            background-color: #34d399; /* Tailwind green-500 */
+            color: #fff;
+        }
+        .score-circle-b {
+            background-color: #34d399; /* Tailwind green-500 */
+            color: #fff;
+            border: 1px solid #d4af37;
+        }
+        .score-circle-c {
+            background-color: #34d399; /* Tailwind green-500 */
+            color: #fff;
+        }
+
+        .price-up {
+            @apply text-redish;
+        }
+        .price-down {
+            @apply text-greenish;
+        }
+
+        /* Gradient for Direction B pills */
+        .pill-success {
+            background-image: linear-gradient(to right, #34d399, #10b981); /* green-500 to green-600 */
+        }
+        .pill-warning {
+            background-image: linear-gradient(to right, #fbbf24, #f59e0b); /* amber-400 to amber-500 */
+        }
+        .pill-neutral {
+            background-image: linear-gradient(to right, #60a5fa, #3b82f6); /* blue-400 to blue-500 */
+        }
+
+        /* Custom scrollbar for demo purposes if content overflows horizontally on smaller screens */
+        .horizontal-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        .horizontal-scroll::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+
+        /* Arrow icons */
+        .icon-arrow-up::before {
+            content: '▲';
+        }
+        .icon-arrow-down::before {
+            content: '▼';
+        }
+
+        /* Global monospace font for numbers */
+        .font-numeric {
+            font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Fixed Top Banner -->
+    <header class="fixed top-0 left-0 right-0 bg-gray-800 text-white p-4 shadow-lg z-50">
+        <h1 class="text-xl md:text-2xl font-bold text-center">飆股篩選器 v3.0 — 3 個設計方向比較</h1>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="pt-20 pb-8 px-4 md:px-8 lg:px-12 flex flex-col md:flex-row md:space-x-6 lg:space-x-8 items-stretch">
+
+        <!-- Direction A: Robinhood 簡約風 -->
+        <section class="flex-1 min-w-0 md:min-w-[30%] bg-robinhood_bg rounded-lg shadow-xl p-6 mb-8 md:mb-0">
+            <h2 class="text-3xl font-bold text-white mb-2 text-center">方向 A：Robinhood 簡約風</h2>
+            <p class="text-gray-400 text-sm mb-6 text-center">純粹黑底、大數字主導，極致簡約與高效資訊。</p>
+
+            <!-- 模式選擇區塊 A -->
+            <div class="flex flex-wrap gap-2 mb-8 justify-center">
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">飆股</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">高勝率</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">當沖</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-full hover:bg-gray-800 transition-colors">隔日沖</button>
+                <button class="bg-white text-black text-sm px-4 py-2 rounded-full font-semibold">全模式合併</button>
+            </div>
+
+            <!-- 結果卡片 A - 2330 台積電 (完整) -->
+            <div class="bg-robinhood_card p-6 rounded-lg mb-6 border border-gray-800">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-white text-2xl font-bold">台積電</span>
+                            <span class="text-gray-500 font-numeric text-sm">2330</span>
+                            <span class="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-bold tracking-wider">HOT</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="font-numeric text-redish text-4xl font-bold">1,235.00</span>
+                            <span class="font-numeric price-up text-xl">+2.45%</span>
+                        </div>
+                    </div>
+                    <div class="score-circle score-circle-a">6/7</div>
+                </div>
+
+                <div class="flex justify-between text-gray-400 text-sm mb-4 font-numeric">
+                    <span>週漲跌 <span class="price-up">+4.12%</span></span>
+                    <span>月漲跌 <span class="price-up">+12.88%</span></span>
+                </div>
+
+                <hr class="border-gray-800 mb-4">
+
+                <div class="grid grid-cols-2 gap-y-3 text-gray-400 text-sm mb-4">
+                    <div>RSI <span class="text-white font-numeric">65</span></div>
+                    <div>K/D <span class="text-white font-numeric">75/68</span></div>
+                    <div>量比 <span class="text-white font-numeric">2.3x</span></div>
+                    <div>換手率 <span class="text-white font-numeric">5.8%</span></div>
+                    <div>乖離率(MA20) <span class="text-white font-numeric">+8.5%</span></div>
+                    <div>本益比 <span class="text-white font-numeric">28.5</span></div>
+                    <div>外資 <span class="text-white font-numeric">+1,250 張</span></div>
+                    <div>投信 <span class="text-white font-numeric">+380 張</span></div>
+                    <div class="col-span-2">連續法人買超 <span class="text-white font-numeric">4 日</span></div>
+                </div>
+
+                <hr class="border-gray-800 mb-4">
+
+                <div class="flex flex-wrap gap-2">
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">均線多頭排列</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">KD金叉</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">MACD翻多</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">爆量突破</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">創新高</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-full">連續法人買超</span>
+                    <span class="text-gray-500 border border-gray-500 text-xs px-3 py-1 rounded-full">突破前高失敗</span>
+                    <span class="text-gray-500 border border-gray-500 text-xs px-3 py-1 rounded-full">成交量不足</span>
+                </div>
+            </div>
+
+            <!-- 結果卡片 A - 2454 聯發科 (簡化) -->
+            <div class="bg-robinhood_card p-4 rounded-lg flex items-center justify-between border border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <span class="text-white text-lg font-bold">聯發科</span>
+                        <span class="text-gray-500 font-numeric text-sm ml-1">2454</span>
+                    </div>
+                    <span class="font-numeric price-down text-lg">1,450.00 (-1.20%)</span>
+                </div>
+                <div class="score-circle score-circle-a bg-red-500">3/7</div>
+            </div>
+
+            <button class="mt-8 w-full bg-gray-700 text-white py-3 rounded-lg text-lg font-semibold hover:bg-gray-600 transition-colors">點此選擇方向 A</button>
+        </section>
+
+        <!-- Direction B: 富果現代金融 App 風 -->
+        <section class="flex-1 min-w-0 md:min-w-[30%] bg-fugle_bg rounded-lg shadow-xl p-6 mb-8 md:mb-0">
+            <h2 class="text-3xl font-bold text-white mb-2 text-center">方向 B：富果現代金融 App 風</h2>
+            <p class="text-gray-400 text-sm mb-6 text-center">午夜藍底、金色強調，呈現高質感與資訊層次。</p>
+
+            <!-- 模式選擇區塊 B -->
+            <div class="flex flex-wrap gap-2 mb-8 justify-center">
+                <button class="bg-transparent border border-fugle_accent text-fugle_accent text-sm px-4 py-2 rounded-lg hover:bg-fugle_accent hover:text-fugle_bg transition-colors">飆股</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">高勝率</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">當沖</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">隔日沖</button>
+                <button class="bg-fugle_accent text-fugle_bg text-sm px-4 py-2 rounded-lg font-semibold">全模式合併</button>
+            </div>
+
+            <!-- 結果卡片 B - 2330 台積電 (完整) -->
+            <div class="bg-fugle_card p-6 rounded-2xl mb-6 border border-fugle_accent shadow-lg shadow-fugle_accent/20">
+                <div class="h-1.5 w-full bg-gradient-to-r from-green-500 to-green-300 rounded-t-xl -mt-6 -mx-6 mb-4"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-white text-2xl font-bold">台積電</span>
+                            <span class="text-gray-400 font-numeric text-sm">2330</span>
+                            <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold tracking-wider">HOT</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="font-numeric text-fugle_accent text-4xl font-bold">1,235.00</span>
+                            <span class="font-numeric price-up text-xl">+2.45%</span>
+                        </div>
+                    </div>
+                    <div class="score-circle score-circle-b">6/7</div>
+                </div>
+
+                <div class="flex justify-between text-gray-300 text-sm mb-4 font-numeric">
+                    <span>週漲跌 <span class="price-up">+4.12%</span></span>
+                    <span>月漲跌 <span class="price-up">+12.88%</span></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-y-3 text-gray-300 text-sm mb-4">
+                    <div class="flex items-center">RSI <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">65</span></div>
+                    <div class="flex items-center">K/D <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">75/68</span></div>
+                    <div class="flex items-center">量比 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_warning to-amber-400 text-white px-2 py-1 rounded-full text-xs">2.3x</span></div>
+                    <div class="flex items-center">換手率 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">5.8%</span></div>
+                    <div class="flex items-center">乖離率(MA20) <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">+8.5%</span></div>
+                    <div class="flex items-center">本益比 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_neutral to-blue-400 text-white px-2 py-1 rounded-full text-xs">28.5</span></div>
+                    <div class="flex items-center col-span-2">外資 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">+1,250 張</span></div>
+                    <div class="flex items-center col-span-2">投信 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">+380 張</span></div>
+                    <div class="flex items-center col-span-2">連法人買超 <span class="font-numeric ml-2 bg-gradient-to-r from-fugle_success to-green-500 text-white px-2 py-1 rounded-full text-xs">4 日</span></div>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">均線多頭排列</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">KD金叉</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">MACD翻多</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">爆量突破</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">創新高</span>
+                    <span class="text-greenish border border-greenish text-xs px-3 py-1 rounded-lg">連續法人買超</span>
+                    <span class="text-gray-500 border border-gray-500 text-xs px-3 py-1 rounded-lg">突破前高失敗</span>
+                    <span class="text-gray-500 border border-gray-500 text-xs px-3 py-1 rounded-lg">成交量不足</span>
+                </div>
+            </div>
+
+            <!-- 結果卡片 B - 2454 聯發科 (簡化) -->
+            <div class="bg-fugle_card p-4 rounded-xl flex items-center justify-between border border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <span class="text-white text-lg font-bold">聯發科</span>
+                        <span class="text-gray-400 font-numeric text-sm ml-1">2454</span>
+                    </div>
+                    <span class="font-numeric price-down text-lg text-fugle_accent">1,450.00 (-1.20%)</span>
+                </div>
+                <div class="score-circle score-circle-b bg-red-500 border border-red-300">3/7</div>
+            </div>
+
+            <button class="mt-8 w-full bg-fugle_accent text-fugle_bg py-3 rounded-xl text-lg font-semibold hover:bg-yellow-400 transition-colors">點此選擇方向 B</button>
+        </section>
+
+        <!-- Direction C: Webull 資訊密度版 -->
+        <section class="flex-1 min-w-0 md:min-w-[30%] bg-webull_bg rounded-lg shadow-xl p-6">
+            <h2 class="text-3xl font-bold text-white mb-2 text-center">方向 C：Webull 資訊密度版</h2>
+            <p class="text-gray-400 text-sm mb-6 text-center">石墨灰底、緊湊資訊，一眼掌握所有關鍵數據。</p>
+
+            <!-- 模式選擇區塊 C -->
+            <div class="flex flex-wrap gap-2 mb-8 justify-center">
+                <button class="bg-webull_accent text-webull_bg text-sm px-4 py-2 rounded-md font-semibold hover:bg-orange-400 transition-colors">飆股</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">高勝率</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">當沖</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">隔日沖</button>
+                <button class="bg-transparent border border-gray-600 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">全模式合併</button>
+            </div>
+
+            <!-- 結果卡片 C - 2330 台積電 (完整) -->
+            <div class="bg-webull_card p-6 rounded-lg mb-6 relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-2 bg-green-500"></div> <!-- Left color bar for score -->
+                <div class="pl-3"> <!-- Offset content due to left bar -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="text-white text-2xl font-bold">台積電</span>
+                                <span class="text-gray-500 font-numeric text-sm">2330</span>
+                                <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded font-bold tracking-wider">HOT</span>
+                            </div>
+                            <div class="flex items-baseline space-x-2">
+                                <span class="font-numeric text-redish text-4xl font-bold">1,235.00</span>
+                                <span class="font-numeric price-up text-xl flex items-center"><i class="icon-arrow-up text-lg mr-1"></i>+2.45%</span>
+                            </div>
+                        </div>
+                        <div class="score-circle score-circle-c">6/7</div>
+                    </div>
+
+                    <div class="flex justify-between text-gray-400 text-sm mb-4 font-numeric">
+                        <span>週漲跌 <span class="price-up">+4.12%</span></span>
+                        <span>月漲跌 <span class="price-up">+12.88%</span></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-400 text-xs mb-4">
+                        <div>RSI <span class="text-white font-numeric">65</span></div>
+                        <div>K/D <span class="text-white font-numeric">75/68</span></div>
+                        <div>量比 <span class="text-white font-numeric">2.3x</span></div>
+                        <div>換手率 <span class="text-white font-numeric">5.8% <i class="icon-arrow-up text-redish"></i></span></div>
+                        <div>乖離率(MA20) <span class="text-white font-numeric">+8.5% <i class="icon-arrow-up text-redish"></i></span></div>
+                        <div>本益比 <span class="text-white font-numeric">28.5</span></div>
+                        <div>外資 <span class="text-white font-numeric">+1,250 張 <i class="icon-arrow-up text-redish"></i></span></div>
+                        <div>投信 <span class="text-white font-numeric">+380 張 <i class="icon-arrow-up text-redish"></i></span></div>
+                        <div class="col-span-2">連續法人買超 <span class="text-white font-numeric">4 日</span></div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-sm">均線多頭排列</span>
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-sm">KD金叉</span>
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-sm">MACD翻多</span>
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-sm">爆量突破</span>
+                        <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-sm">創新高</span>
+                        <span class="bg-webull_accent text-white text-xs px-2 py-0.5 rounded-sm">連續法人買超</span>
+                        <span class="bg-gray-600 text-gray-300 text-xs px-2 py-0.5 rounded-sm">突破前高失敗</span>
+                        <span class="bg-gray-600 text-gray-300 text-xs px-2 py-0.5 rounded-sm">成交量不足</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果卡片 C - 2454 聯發科 (簡化) -->
+            <div class="bg-webull_card p-4 rounded-lg flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-2 bg-red-500"></div> <!-- Left color bar for score -->
+                <div class="pl-3 flex items-center space-x-3">
+                    <div>
+                        <span class="text-white text-lg font-bold">聯發科</span>
+                        <span class="text-gray-500 font-numeric text-sm ml-1">2454</span>
+                    </div>
+                    <span class="font-numeric price-down text-lg flex items-center"><i class="icon-arrow-down text-greenish mr-1"></i>1,450.00 (-1.20%)</span>
+                </div>
+                <div class="score-circle score-circle-c bg-red-500">3/7</div>
+            </div>
+
+            <button class="mt-8 w-full bg-webull_accent text-webull_bg py-3 rounded-lg text-lg font-semibold hover:bg-orange-400 transition-colors">點此選擇方向 C</button>
+        </section>
+
+    </main>
+
+</body>
+</html>

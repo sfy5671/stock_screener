@@ -3,6 +3,9 @@
 支援: 全上市/上櫃股票篩選, K線圖, 日/周/月線切換, 進階篩選條件
 """
 
+import logging
+import re
+from collections import defaultdict, deque
 from flask import Flask, render_template, jsonify, request
 import stock_screener as ss
 import numpy as np
@@ -10,6 +13,39 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
+
+# 公開 API 上限(防 DoS)
+MAX_SCREEN_STOCKS = 200
+MAX_REALTIME_CODES = 50
+MAX_TOP_N = 100
+STOCK_CODE_RE = re.compile(r'^[0-9A-Za-z]{1,6}$')
+
+# 全公開 API rate limit:每 IP 30 次/分鐘
+_rl_hits = defaultdict(deque)
+_RL_PER_MIN = 30
+
+
+def _rate_limited(ip):
+    now = time.time()
+    dq = _rl_hits[ip]
+    while dq and now - dq[0] > 60:
+        dq.popleft()
+    if len(dq) >= _RL_PER_MIN:
+        return True
+    dq.append(now)
+    return False
+
+
+@app.before_request
+def _check_rate_limit():
+    # 只限 API,首頁/static 不限
+    if not request.path.startswith('/api/'):
+        return
+    ip = (request.headers.get('X-Forwarded-For', request.remote_addr or '0.0.0.0')
+          .split(',')[0].strip())
+    if _rate_limited(ip):
+        return jsonify({'error': 'rate limit exceeded, max 30 req/min'}), 429
 
 
 def sf(val):
@@ -42,7 +78,9 @@ def privacy():
 
 @app.route("/api/company-info/<code>")
 def company_info(code):
-    """單一股票的公司基本資料（產業/上市日期/網址/董事長等）"""
+    """單一股票的公司基本資料(產業/上市日期/網址/董事長等)"""
+    if not STOCK_CODE_RE.match(code):
+        return jsonify({"error": "code 格式不合法"}), 400
     info = ss.fetch_company_capital().get(code, {})
     basic = ss.fetch_basic_indicators().get(code, {})
     return jsonify({
@@ -75,13 +113,16 @@ def get_all_stocks():
 @app.route("/api/prescreen", methods=["POST"])
 def prescreen():
     """
-    第一階段：快速預篩全市場 (約2~3秒)。
-    從證交所/櫃買中心批量抓當日行情，不需逐一查詢。
+    第一階段:快速預篩全市場(約 2~3 秒)。
+    從證交所/櫃買中心批量抓當日行情,不需逐一查詢。
     """
     data = request.get_json() or {}
-    min_price = float(data.get("min_price", 10))
-    min_volume = int(data.get("min_volume", 500))
-    top_n = int(data.get("top_n", 200))
+    try:
+        min_price = float(data.get("min_price", 10))
+        min_volume = int(data.get("min_volume", 500))
+        top_n = max(1, min(MAX_TOP_N, int(data.get("top_n", 200))))
+    except (TypeError, ValueError):
+        return jsonify({"error": "min_price/min_volume/top_n 需為數值"}), 400
 
     candidates = ss.prescreen_all(min_price=min_price, min_volume=min_volume, top_n=top_n)
 
@@ -93,9 +134,9 @@ def prescreen():
 
 @app.route("/api/search-stock")
 def search_stock():
-    """搜尋股票（代號或名稱模糊搜尋）"""
-    q = request.args.get("q", "").strip()
-    if not q or len(q) < 1:
+    """搜尋股票(代號或名稱模糊搜尋)"""
+    q = request.args.get("q", "").strip()[:40]
+    if not q:
         return jsonify([])
     stocks = ss.get_all_stocks()
     results = []
@@ -128,27 +169,33 @@ def get_strategies():
 
 @app.route("/api/screen", methods=["POST"])
 def screen_stocks():
-    """篩選股票 API（多線程加速版）"""
-    data = request.get_json()
+    """篩選股票 API(多線程加速版)"""
+    data = request.get_json() or {}
     stock_list = data.get("stocks", [])
-    top_n = int(data.get("top_n", 0))
+    try:
+        top_n = max(0, min(MAX_TOP_N, int(data.get("top_n", 0))))
+    except (TypeError, ValueError):
+        return jsonify({"error": "top_n 需為整數"}), 400
     mode = data.get("mode", "momentum")
     extra_strategies = data.get("extra_strategies", [])
     extra_params = data.get("extra_params", {})
 
     if not stock_list:
         return jsonify({"error": "請至少加入一檔股票"}), 400
+    if not isinstance(stock_list, list) or len(stock_list) > MAX_SCREEN_STOCKS:
+        return jsonify({"error": f"一次最多分析 {MAX_SCREEN_STOCKS} 檔股票"}), 400
 
-    # 預載 v3.1 新資料源（單線程一次抓完，避免 worker race timeout）
-    # 失敗時各函式內部都會 return {} 不阻塞
-    try: ss.fetch_basic_indicators()
-    except Exception: pass
-    try: ss.fetch_company_capital()
-    except Exception: pass
-    try: ss.fetch_institutional_history(5)
-    except Exception: pass
-    try: ss.fetch_margin_data()
-    except Exception: pass
+    # 預載 v3.1 新資料源(單線程一次抓完,避免 worker race timeout)
+    for name, fn in (
+        ('basic_indicators', ss.fetch_basic_indicators),
+        ('company_capital', ss.fetch_company_capital),
+        ('inst_hist', lambda: ss.fetch_institutional_history(5)),
+        ('margin', ss.fetch_margin_data),
+    ):
+        try:
+            fn()
+        except Exception as e:
+            app.logger.warning('preload %s failed: %s', name, e)
 
     # --- 單檔分析函式（給線程池用） ---
     def analyze_one(item):
@@ -232,10 +279,10 @@ def screen_stocks():
             "strategies": {s: bool(v) for s, v in strat_results.items()},
         }, None
 
-    # --- 多線程並行分析 ---
+    # --- 多線程並行分析(Render Starter 0.5 CPU,壓 4 thread 避免 thrash) ---
     results = []
     errors = []
-    workers = min(8, len(stock_list))  # 最多 8 線程
+    workers = max(1, min(4, len(stock_list)))
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(analyze_one, item): item for item in stock_list}
@@ -263,11 +310,15 @@ def screen_stocks():
 
 @app.route("/api/realtime", methods=["POST"])
 def realtime_quotes():
-    """取得多檔股票即時報價（盤中用）"""
+    """取得多檔股票即時報價(盤中用)"""
     data = request.get_json() or {}
     codes = data.get("codes", [])
     if not codes:
         return jsonify({})
+    if not isinstance(codes, list) or len(codes) > MAX_REALTIME_CODES:
+        return jsonify({"error": f"一次最多查 {MAX_REALTIME_CODES} 檔"}), 400
+    # 過濾出合法格式的 code
+    codes = [c for c in codes if isinstance(c, str) and STOCK_CODE_RE.match(c)]
     quotes = ss.get_realtime_quotes(codes)
     return jsonify({"quotes": quotes, "market_open": ss.is_market_open()})
 
@@ -288,7 +339,10 @@ def market_status():
 
 @app.route("/api/chart/<code>")
 def get_chart(code):
-    """取得個股 K 線圖資料 (支援 1日/1週/1月/1年)"""
+    """取得個股 K 線圖資料(支援 1日/1週/1月/1年)"""
+    # 限定 code 格式,防特殊字元觸發 yfinance 異常或 SSRF-like
+    if code not in ("t00", "TWII", "twii") and not STOCK_CODE_RE.match(code):
+        return jsonify({"error": "code 格式不合法"}), 400
     key = request.args.get("period", "1mo")
     # period = yfinance 抓取範圍, interval = K棒週期
     period_map = {
@@ -388,7 +442,8 @@ if __name__ == "__main__":
     stocks = ss.get_all_stocks()
     print(f"  已載入 {len(stocks)} 檔上市/上櫃股票")
     port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     print(f"  電腦: http://localhost:{port}")
     print(f"  手機: http://你的區網IP:{port}")
     print("=" * 50 + "\n")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=debug)
