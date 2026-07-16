@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
+app.config['TEMPLATES_AUTO_RELOAD'] = True  # 本機自用：改畫面免重啟伺服器
 
 # 公開 API 上限(防 DoS)
 MAX_SCREEN_STOCKS = 200
@@ -427,6 +428,63 @@ def get_chart(code):
         "signals": signals,
         "code": code,
     })
+
+
+# ============================================================================
+#  API: 自選股 + AI 判讀（本機融合版）
+# ============================================================================
+import os
+import json as _json
+
+_WATCHLIST_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "daily_report", "watchlist.json")
+
+
+def _load_watchlist():
+    try:
+        with open(_WATCHLIST_PATH, encoding="utf-8") as f:
+            wl = _json.load(f)
+        return wl if isinstance(wl, list) else []
+    except Exception:
+        return []
+
+
+@app.route("/api/watchlist", methods=["GET"])
+def get_watchlist():
+    return jsonify({"watchlist": _load_watchlist()})
+
+
+@app.route("/api/watchlist", methods=["POST"])
+def save_watchlist():
+    data = request.get_json() or {}
+    wl = data.get("watchlist", [])
+    if not isinstance(wl, list) or len(wl) > 100:
+        return jsonify({"error": "格式錯誤或超過 100 檔"}), 400
+    clean = []
+    for it in wl:
+        code = str(it.get("code", "")).strip()
+        if STOCK_CODE_RE.match(code):
+            clean.append({"code": code, "name": str(it.get("name", code)).strip()[:20]})
+    try:
+        with open(_WATCHLIST_PATH, "w", encoding="utf-8") as f:
+            _json.dump(clean, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return jsonify({"error": f"寫入失敗：{e}"}), 500
+    return jsonify({"ok": True, "watchlist": clean})
+
+
+@app.route("/api/ai-analyze/<code>")
+def ai_analyze(code):
+    """對單一個股即時呼叫 Claude 判讀（本機才有 ANTHROPIC_API_KEY）"""
+    if not STOCK_CODE_RE.match(code):
+        return jsonify({"error": "code 格式不合法"}), 400
+    name = request.args.get("name", code)
+    try:
+        from daily_report import analyst
+        card = analyst.analyze(code, name)
+        return jsonify({"ok": card["ok"], "text": card["text"]})
+    except Exception as e:
+        return jsonify({"ok": False, "text": f"AI 判讀失敗：{e}"}), 500
 
 
 # ============================================================================

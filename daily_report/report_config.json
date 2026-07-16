@@ -1,0 +1,27 @@
+{
+  "_note": "自選股清單與戰報設定。Telegram token 走環境變數 TELEGRAM_BOT_TOKEN，勿寫在這裡。",
+  "watchlist": [
+    {
+      "code": "2308",
+      "name": "台達電"
+    },
+    {
+      "code": "2330",
+      "name": "台積電"
+    },
+    {
+      "code": "2317",
+      "name": "鴻海"
+    }
+  ],
+  "telegram": {
+    "chat_id": "7997023157"
+  },
+  "flyers": {
+    "top_n": 5,
+    "pool": 40,
+    "min_price": 20,
+    "min_volume": 3000,
+    "min_score": 3
+  }
+}

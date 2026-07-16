@@ -3,401 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>飆股篩選器 v3.1 - 使用說明</title>
+<title>飆股篩選器 本機版 — 使用說明</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root { --primary: #e74c3c; --primary-dark: #c0392b; --bg: #f8f9fa; --sidebar-bg: #1a1a2e; --text: #333; --card-bg: #fff; --border: #e0e0e0; --green: #27ae60; --blue: #2980b9; --orange: #f39c12; }
-body { font-family: -apple-system, 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
-.layout { display: flex; min-height: 100vh; }
-.sidebar { width: 280px; background: var(--sidebar-bg); color: #ccc; padding: 30px 0; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
-.sidebar h1 { font-size: 18px; color: #fff; padding: 0 24px 20px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 16px; }
-.sidebar nav a { display: block; padding: 10px 24px; color: #aaa; text-decoration: none; font-size: 14px; transition: .2s; border-left: 3px solid transparent; }
-.sidebar nav a:hover, .sidebar nav a.active { color: #fff; background: rgba(231,76,60,.15); border-left-color: var(--primary); }
-.sidebar nav .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #555; padding: 16px 24px 6px; }
-.main { margin-left: 280px; padding: 40px 50px; max-width: 1000px; flex: 1; }
-h2 { font-size: 28px; color: var(--primary); margin: 40px 0 16px; padding-bottom: 10px; border-bottom: 2px solid var(--primary); }
-h2:first-child { margin-top: 0; }
-h3 { font-size: 20px; color: #2c3e50; margin: 28px 0 12px; }
-h4 { font-size: 16px; margin: 20px 0 8px; }
-p { margin: 10px 0; }
-ul, ol { margin: 10px 0 10px 24px; }
-li { margin: 6px 0; }
-.card { background: var(--card-bg); border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); border: 1px solid var(--border); }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.badge-red { background: rgba(231,76,60,.1); color: var(--primary); }
-.badge-green { background: rgba(39,174,96,.1); color: var(--green); }
-.badge-blue { background: rgba(41,128,185,.1); color: var(--blue); }
-.badge-orange { background: rgba(243,156,18,.1); color: var(--orange); }
-code { background: #f4f4f4; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-family: 'Consolas', monospace; }
-pre { background: #1a1a2e; color: #eee; padding: 16px 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; margin: 12px 0; }
-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-th, td { padding: 10px 14px; border: 1px solid var(--border); text-align: left; font-size: 14px; }
-th { background: #f0f0f0; font-weight: 600; }
-.highlight-box { border-left: 4px solid var(--primary); background: rgba(231,76,60,.05); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
-.tip-box { border-left: 4px solid var(--green); background: rgba(39,174,96,.05); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
-@media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 20px; } }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,'Segoe UI','Microsoft JhengHei',sans-serif; background:linear-gradient(165deg,#eef2f8,#dde5f0); color:#1e293b; line-height:1.75; padding:0; }
+.wrap { max-width:860px; margin:0 auto; padding:40px 24px 80px; }
+header.top { text-align:center; margin-bottom:36px; }
+header.top h1 { font-size:30px; color:#1d4ed8; }
+header.top p { color:#475569; margin-top:8px; }
+h2 { font-size:22px; color:#1d4ed8; margin:34px 0 14px; padding-bottom:8px; border-bottom:2px solid #cdd8ea; }
+h3 { font-size:17px; color:#0f172a; margin:20px 0 8px; }
+.card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:22px 24px; margin:14px 0; box-shadow:0 2px 10px rgba(15,23,42,.05); }
+ul,ol { margin:8px 0 8px 22px; } li { margin:6px 0; }
+code { background:#eef2f8; color:#1d4ed8; padding:2px 7px; border-radius:5px; font-size:13px; font-family:'JetBrains Mono',monospace; }
+.step { display:flex; gap:14px; margin:14px 0; }
+.step .n { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:#1d4ed8; color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.tip { background:#eff6ff; border-left:4px solid #1d4ed8; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; font-size:14px; }
+.warn { background:#fef2f2; border-left:4px solid #dc2626; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; font-size:14px; }
+.badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600; background:#dbeafe; color:#1d4ed8; }
+b { color:#0f172a; }
 </style>
 </head>
 <body>
-<div class="layout">
-<aside class="sidebar">
-  <h1>飆股篩選器 v3.1</h1>
-  <nav>
-    <div class="section-title">基本介紹</div>
-    <a href="#intro">系統簡介</a>
-    <a href="#whatsnew">v3.1 改造重點</a>
-    <a href="#features">功能總覽</a>
-    <div class="section-title">操作教學</div>
-    <a href="#flow">篩選流程</a>
-    <a href="#prescreen">預篩條件</a>
-    <a href="#modes">五大策略模式</a>
-    <a href="#momentum-detail">飆股策略詳解</a>
-    <a href="#key-indicators">關鍵指標解讀</a>
-    <a href="#strategies">進階篩選條件</a>
-    <a href="#kline">K 線圖</a>
-    <div class="section-title">部署安裝</div>
-    <a href="#local">本機執行</a>
-    <a href="#render">雲端部署 (Render)</a>
-    <a href="#pwa">手機安裝 (PWA)</a>
-    <a href="#apk">APK 打包</a>
-    <div class="section-title">其他</div>
-    <a href="#faq">常見問題</a>
-    <a href="#tech">技術架構</a>
-  </nav>
-</aside>
+<div class="wrap">
+<header class="top">
+  <h1>📈 飆股篩選器 · 本機版</h1>
+  <p>你的個人股票分析中心 — 篩選、自選股、AI 判讀、每日戰報一體</p>
+</header>
 
-<main class="main">
-
-<h2 id="intro">系統簡介</h2>
+<h2>一、怎麼啟動</h2>
 <div class="card">
-  <p><strong>飆股篩選器 v3.1</strong> 是一套台股技術分析選股工具，支援全上市/上櫃股票篩選，透過多種技術指標與籌碼面資料，快速找出真正具備飆股特徵的潛力標的。</p>
+  <div class="step"><div class="n">1</div><div>雙擊資料夾裡的 <code>啟動飆股篩選器.bat</code></div></div>
+  <div class="step"><div class="n">2</div><div>會跳出一個黑色視窗（本機伺服器），幾秒後<b>自動打開瀏覽器</b>到 <code>http://127.0.0.1:5000</code></div></div>
+  <div class="step"><div class="n">3</div><div>用完後，<b>關掉那個黑色視窗</b>就是關閉伺服器</div></div>
+  <div class="tip">💡 那個黑色視窗開著的時候才能用網頁。同一區網的手機也可連 <code>http://你的電腦IP:5000</code> 看（啟動時視窗會顯示 IP）。</div>
+</div>
+
+<h2>二、我的自選股 <span class="badge">每天自動 AI 判讀</span></h2>
+<div class="card">
+  <p>點上方導覽列「<b>自選股</b>」分頁。這裡的股票，<b>每天盤後會自動 AI 判讀並推播到你的 Telegram</b>。</p>
   <ul>
-    <li><span class="badge badge-red">全市場掃描</span> 一次預篩全上市 + 上櫃約 2000 檔</li>
-    <li><span class="badge badge-green">五大策略模式</span> 飆股 / 高勝率 / 當沖 / 隔日沖 / 全模式合併</li>
-    <li><span class="badge badge-blue">籌碼面整合</span> 換手率、連續法人買超、本益比、融資融券</li>
-    <li><span class="badge badge-orange">PWA 支援</span> 手機加入主畫面，隨時隨地用</li>
+    <li><b>加入</b>：在搜尋欄輸入代號或名稱 → 點選加入</li>
+    <li><b>刪除</b>：滑到該檔右側，點 <code>×</code></li>
+    <li><b>看資訊</b>：<b>點任一檔</b> → 跳出「個股快覽」（報價、漲跌、RSI、KD、均線、外資買賣超）</li>
+    <li><b>從收藏匯入</b>：把「★ 收藏」的股票一鍵加進自選股</li>
+  </ul>
+  <div class="tip">💡 自選股清單存在本機，也會跟著 GitHub 備份，換電腦不會不見。</div>
+</div>
+
+<h2>三、AI 判讀（Claude 大師分析）</h2>
+<div class="card">
+  <p>任何股票卡片、自選股列、熱門股標籤、個股快覽視窗裡，都有 <b>🤖 AI判讀</b> 鈕。點下去約 5～15 秒，Claude 會給出：</p>
+  <ul>
+    <li>定調（多方／空方／整理）、均線多空排列</li>
+    <li>量能、籌碼（外資／投信動向）</li>
+    <li>支撐／壓力關卡、操作參考</li>
+  </ul>
+  <div class="warn">⚠️ AI 判讀為技術面資訊整理，<b>非投資建議</b>，投資有風險，請自行評估。</div>
+</div>
+
+<h2>四、每日戰報（Telegram 自動推播）</h2>
+<div class="card">
+  <p>每天盤後 <b>15:40</b>，電腦會自動：判讀你全部自選股 + 選出當日飆股 Top5 判讀 → 組成戰報 → <b>推到你的 Telegram</b>（@sfy5671bot）。</p>
+  <div class="warn">⚠️ 需要<b>設排程的那台電腦當天有開機、連網</b>，排程才會跑。電腦不用開 Telegram（訊息透過網路發到你手機）。若 15:40 電腦沒開，開機後會自動補跑。</div>
+  <h3>手動測一份戰報</h3>
+  <p>在資料夾開終端機，執行：<br><code>py -3.11 daily_report/run_daily_report.py</code></p>
+</div>
+
+<h2>五、其他分頁</h2>
+<div class="card">
+  <ul>
+    <li><b>儀表</b>：大盤速覽、我的最愛、最後篩選摘要</li>
+    <li><b>篩選</b>：5 大策略（飆股／高勝率／當沖／隔日沖／合併）掃全市場；「熱門50檔」一鍵載入熱門股</li>
+    <li><b>收藏</b>：加 ★ 的股票，即時報價追蹤</li>
+    <li><b>大盤</b>：加權指數、台指期</li>
+    <li><b>K線</b>：任意股票的日／週／分 K 線圖 + 買賣訊號</li>
   </ul>
 </div>
 
-<h2 id="whatsnew">v3.1 改造重點</h2>
-<div class="highlight-box">
-  <p><strong>痛點：</strong>舊版飆股模式（v3.0）用的是常見技術指標組合（均線多頭、KD金叉、MACD翻多、RSI 50~80、布林突破），訊號太普遍，全市場每天幾百檔通過，不夠精準。</p>
-  <p><strong>解法：</strong>v3.1 重寫飆股策略，改用「真飆股特徵」—— 換手率異常、乖離率不過熱、法人連續性買超、底部突破帶量等指標。</p>
-</div>
+<h2>六、常見問題</h2>
 <div class="card">
-  <h4>飆股策略大改 — 新舊對照</h4>
-  <table>
-    <tr><th>舊條件 (v3.0)</th><th></th><th>新條件 (v3.1)</th></tr>
-    <tr><td>均線多頭排列</td><td>→</td><td>均線多頭排列（保留）</td></tr>
-    <tr><td>站上所有均線</td><td>→</td><td>站上 20 日均線</td></tr>
-    <tr><td>KD 黃金交叉</td><td>✗ 刪除</td><td><strong>換手率 3~25%</strong>（活躍但未過熱）</td></tr>
-    <tr><td>MACD 翻多</td><td>✗ 刪除</td><td><strong>乖離率(MA20) 0~15%</strong>（強勢未過熱）</td></tr>
-    <tr><td>RSI 強勢區間</td><td>✗ 刪除</td><td><strong>連續法人買超 3 日</strong>（外資或投信）</td></tr>
-    <tr><td>爆量突破</td><td>強化</td><td><strong>爆量突破 20 日新高</strong>（量+價雙確認）</td></tr>
-    <tr><td>布林上軌突破</td><td>✗ 刪除</td><td><strong>量能持續放大</strong>（5日均量 &gt; 20日 1.5x）</td></tr>
-  </table>
-  <h4>新增資料來源</h4>
+  <h3>沒收到每日戰報？</h3>
   <ul>
-    <li><code>BWIBBU_ALL</code> — 證交所「個股本益比/殖利率/股價淨值比」</li>
-    <li><code>t187ap03_L/O</code> — 上市 / 上櫃公司基本資料（取「實收資本額」算發行股數）</li>
-    <li><code>T86</code> 多日累計 — 三大法人連續買超天數</li>
-    <li><code>MI_MARGN</code> — 融資融券餘額</li>
+    <li>確認那台電腦 15:40 有開機連網</li>
+    <li>手動跑 <code>py -3.11 daily_report/run_daily_report.py</code> 看有沒有錯誤</li>
   </ul>
+  <h3>改了畫面沒生效？</h3>
+  <p>本機版已開 template 自動重載，瀏覽器按 <code>Ctrl + F5</code> 強制重整即可。</p>
+  <h3>資料更新到哪一天？</h3>
+  <p>法人／融資等籌碼資料由每天 15:00 的「飆股篩選器每日更新」排程抓取；個股日K 即時抓。</p>
 </div>
 
-<h2 id="features">功能總覽</h2>
-<table>
-  <tr><th>功能</th><th>說明</th></tr>
-  <tr><td>全市場預篩</td><td>從證交所/櫃買中心批量抓當日行情，2~3 秒篩出候選</td></tr>
-  <tr><td>五大策略模式</td><td>飆股 / 高勝率 / 當沖 / 隔日沖 / 全模式合併</td></tr>
-  <tr><td>籌碼面整合</td><td>三大法人連續買超、融資融券、本益比、發行股數（算換手率）</td></tr>
-  <tr><td>進階篩選</td><td>13 個進階條件可勾選，多線程加速逐一分析</td></tr>
-  <tr><td>股票搜尋</td><td>代號或名稱模糊搜尋</td></tr>
-  <tr><td>K 線圖</td><td>1分/5分/15分/30分/日K/週K，含均線與進場離場訊號</td></tr>
-  <tr><td>即時報價</td><td>盤中自動更新（30 秒 / 大盤頁 10 秒）</td></tr>
-  <tr><td>大盤/期貨即時</td><td>加權指數 + 台指期即時走勢圖</td></tr>
-</table>
-
-<h2 id="flow">篩選流程</h2>
-<div class="card">
-  <ol>
-    <li><strong>第一階段：預篩</strong>（約 2~3 秒）
-      <ul>
-        <li>從證交所/櫃買中心一次抓全市場當日行情</li>
-        <li>依最低股價、最低成交量篩出候選</li>
-        <li>取前 N 名候選股</li>
-      </ul>
-    </li>
-    <li><strong>第二階段：深度分析</strong>（多線程並行）
-      <ul>
-        <li>對候選股逐一抓取歷史 K 線（Yahoo Finance）</li>
-        <li>計算技術指標（RSI、KD、MACD 等）</li>
-        <li>套用選擇的策略模式與進階條件</li>
-        <li>計算綜合分數並排序</li>
-      </ul>
-    </li>
-    <li><strong>呈現結果</strong>
-      <ul>
-        <li>依分數排序顯示符合條件的股票</li>
-        <li>可點選查看 K 線圖</li>
-      </ul>
-    </li>
-  </ol>
+<p style="text-align:center; color:#94a3b8; margin-top:30px; font-size:13px;">飆股篩選器 本機版 · 純自用 · 資料來源 Yahoo Finance + 證交所 OpenAPI</p>
 </div>
-
-<h2 id="prescreen">預篩條件</h2>
-<div class="card">
-  <table>
-    <tr><th>參數</th><th>說明</th><th>預設值</th></tr>
-    <tr><td>最低股價</td><td>過濾低價股</td><td>$10</td></tr>
-    <tr><td>最低成交量</td><td>過濾冷門股（張）</td><td>500 張</td></tr>
-    <tr><td>候選數量</td><td>預篩後取前 N 名</td><td>200</td></tr>
-  </table>
-</div>
-
-<h2 id="modes">五大策略模式</h2>
-<div class="card">
-  <p>每個模式內含 7 個策略條件，符合越多分數越高。可選一個專注模式，或選「全模式合併」一次跑 28 策略總和。</p>
-  <table>
-    <tr><th>模式</th><th>適用場景</th><th>核心特徵</th></tr>
-    <tr><td><strong style="color:#e74c3c">飆股</strong> momentum</td><td>追熱錢、做主升段</td><td>換手率 / 乖離率 / 連續法人 / 底部突破帶量</td></tr>
-    <tr><td><strong style="color:#27ae60">高勝率</strong> highwin</td><td>均值回歸、低買反彈</td><td>RSI(2) / W%R 超賣反彈、布林下軌反彈、法人共識</td></tr>
-    <tr><td><strong style="color:#f39c12">當沖</strong> daytrade</td><td>日內進出、不留倉</td><td>量能門檻 / 振幅 / 開盤突破 / VWAP / 盤中創高</td></tr>
-    <tr><td><strong style="color:#d4af37">隔日沖</strong> swing</td><td>尾盤進場、隔日獲利了結</td><td>強勢收盤、尾盤爆量、接近漲停、跳空潛力</td></tr>
-    <tr><td><strong style="color:#2980b9">全模式合併</strong> combined</td><td>不限風格、找最熱門</td><td>四模式 28 策略全部跑一次</td></tr>
-  </table>
-</div>
-
-<h2 id="momentum-detail">飆股策略詳解（v3.1）</h2>
-<div class="card">
-  <p>飆股模式共 7 個條件，每命中 1 個得 1 分，總分越高越有飆股潛力。</p>
-  <table>
-    <tr><th>#</th><th>條件</th><th>意義</th></tr>
-    <tr><td>1</td><td>均線多頭排列<br><code>MA5 &gt; MA10 &gt; MA20 &gt; MA60</code></td><td>多頭趨勢結構成形</td></tr>
-    <tr><td>2</td><td>站上 20 日均線<br><code>收盤 &gt; MA20</code></td><td>中短期趨勢仍站在多方</td></tr>
-    <tr><td>3</td><td><strong>換手率 3~25%</strong><br><code>今日成交量 ÷ 流通股數</code></td><td>活躍但未過熱（飆股甜蜜區）</td></tr>
-    <tr><td>4</td><td><strong>乖離率(MA20) 0~15%</strong><br><code>(現價 − MA20) ÷ MA20</code></td><td>強勢但未過熱（避開追高風險）</td></tr>
-    <tr><td>5</td><td><strong>連續法人買超 3 日</strong><br>外資或投信</td><td>主力連續進場，非單日噪音</td></tr>
-    <tr><td>6</td><td><strong>爆量突破 20 日新高</strong><br>收盤創 20 日高 + 量 &gt; 均量 1.5x</td><td>量價雙確認的突破，可信度高</td></tr>
-    <tr><td>7</td><td><strong>量能持續放大</strong><br><code>5日均量 &gt; 20日均量 × 1.5</code></td><td>整體成交動能正轉強</td></tr>
-  </table>
-  <div class="tip-box">
-    <p><strong>解讀建議：</strong></p>
-    <ul>
-      <li><strong>5+ 分</strong>：飆股候選，宜深入研究（看 K 線、查產業基本面）</li>
-      <li><strong>3~4 分</strong>：強勢股觀察名單，可列入追蹤</li>
-      <li><strong>&lt;3 分</strong>：條件不足，觀望</li>
-    </ul>
-  </div>
-</div>
-
-<h2 id="key-indicators">關鍵指標解讀</h2>
-<div class="card">
-  <h3>📊 換手率（Turnover Rate）</h3>
-  <p>定義：<code>今日成交量 ÷ 流通股數 × 100%</code></p>
-  <p>反映「籌碼換手」的劇烈程度，是飆股辨識最重要的單一指標。</p>
-  <table>
-    <tr><th>區間</th><th>意義</th><th>解讀</th></tr>
-    <tr><td>&lt; 1%</td><td>冷門股</td><td>沒人交易，難以推升</td></tr>
-    <tr><td>1 ~ 3%</td><td>正常股</td><td>一般大型股的日常活躍度</td></tr>
-    <tr><td><strong style="color:#e74c3c">3 ~ 10%</strong></td><td><strong>飆股甜蜜區</strong></td><td>主力正在換手、籌碼正在重整</td></tr>
-    <tr><td>10 ~ 15%</td><td>過度活躍</td><td>已進入急漲段，需注意追高</td></tr>
-    <tr><td>&gt; 15%</td><td>過熱警示</td><td>可能在出貨，建議觀望或減碼</td></tr>
-  </table>
-
-  <h3>📐 乖離率 BIAS(MA20)</h3>
-  <p>定義：<code>(現價 − MA20) ÷ MA20 × 100%</code></p>
-  <p>反映股價與 20 日均線的偏離程度，判斷「強勢」與「過熱」的尺規。</p>
-  <table>
-    <tr><th>區間</th><th>意義</th><th>解讀</th></tr>
-    <tr><td>&lt; −10%</td><td>嚴重超賣</td><td>跌深可能反彈，但需配合其他訊號</td></tr>
-    <tr><td>−5% ~ 0%</td><td>接近均線</td><td>站穩可承接，跌破則注意停損</td></tr>
-    <tr><td><strong style="color:#e74c3c">0% ~ +15%</strong></td><td><strong>強勢區</strong></td><td>多頭主升段，飆股啟動到主升常見</td></tr>
-    <tr><td>+15% ~ +25%</td><td>偏熱</td><td>持股可續抱，但別再追高</td></tr>
-    <tr><td>&gt; +25%</td><td>過熱警示</td><td>修正風險高，宜分批獲利了結</td></tr>
-  </table>
-
-  <h3>👥 連續法人買超天數</h3>
-  <p>從證交所 T86 抓最近 5 個交易日，計算外資 / 投信「連續正買超」的天數。</p>
-  <ul>
-    <li><strong>0~2 日</strong>：單日噪音，不具參考性</li>
-    <li><strong>3~4 日</strong>：法人持續性建倉，主力進場訊號</li>
-    <li><strong>5 日以上</strong>：強烈共識，搭配技術面通常持續性更佳</li>
-  </ul>
-  <p>外資與投信「同步」連續買超時，比單一法人更可靠。</p>
-
-  <h3>💰 本益比（PE）</h3>
-  <p>來源：證交所 BWIBBU_ALL（每日更新）。雖然飆股常本益比偏高，但極端值（&gt;100 或本益比為負）需小心題材股風險。</p>
-
-  <h3>📉 融資融券</h3>
-  <p>來源：證交所 MI_MARGN。融資餘額快速增加配合股價上漲 → 散戶追高訊號；融券大增 + 股價穩 → 軋空題材。</p>
-</div>
-
-<h2 id="strategies">進階篩選條件</h2>
-<div class="card">
-  <p>選好策略模式後，還可勾選下列「進階條件」做交集篩選 —— 勾選後<strong>只顯示通過該條件的股票</strong>。</p>
-  <table>
-    <tr><th>條件</th><th>說明</th><th>可調參數</th></tr>
-    <tr><td>近期漲停板</td><td>N 日內出現漲停（≥+9.5%）</td><td>天數（預設 5）</td></tr>
-    <tr><td>近期跌停板</td><td>N 日內出現跌停（≤-9.5%）</td><td>天數（預設 5）</td></tr>
-    <tr><td>連續上漲 / 下跌</td><td>連續 N 日收紅 / 收黑</td><td>天數（預設 3）</td></tr>
-    <tr><td>創 N 日新高</td><td>突破最近 N 日最高價</td><td>天數（預設 60）</td></tr>
-    <tr><td>量縮整理</td><td>今日量 &lt; 20 日均量 × 50%</td><td>—</td></tr>
-    <tr><td>跳空上漲</td><td>今日最低價 &gt; 昨日最高價</td><td>—</td></tr>
-    <tr><td>均線黃金交叉</td><td>5MA 上穿 20MA</td><td>—</td></tr>
-    <tr><td>週漲幅達標</td><td>近 5 日漲幅 ≥ N%</td><td>%（預設 10）</td></tr>
-    <tr><td>月漲幅達標</td><td>近 20 日漲幅 ≥ N%</td><td>%（預設 20）</td></tr>
-    <tr><td>價漲量增</td><td>收紅且今量 &gt; 昨量</td><td>—</td></tr>
-    <tr><td>量價背離</td><td>價創新高但量萎縮（反轉警示）</td><td>—</td></tr>
-    <tr><td>連續量增</td><td>連續 N 日成交量遞增</td><td>天數（預設 3）</td></tr>
-  </table>
-</div>
-
-<h2 id="kline">K 線圖</h2>
-<div class="card">
-  <ul>
-    <li>支援週期切換：<strong>1 分 / 5 分 / 15 分 / 30 分 / 日 K / 週 K</strong></li>
-    <li>顯示四條均線：MA5 / MA10 / MA20 / MA60（可獨立勾選顯示）</li>
-    <li>下方附成交量柱狀圖（紅 = 收高、綠 = 收低）</li>
-    <li>自動標註<strong>進場 / 離場訊號</strong>（▲ 紅色 = 進場、▼ 綠色 = 離場）</li>
-    <li>從篩選結果點任意股票卡片可直接跳到 K 線圖頁籤</li>
-  </ul>
-  <div class="tip-box">
-    <p><strong>訊號規則：</strong>至少 2 個技術指標同時確認才標記（KD 交叉 + MACD 翻多 + RSI(2) 反彈 + 布林反彈 + 均線交叉 + 爆量長紅/長黑），同方向訊號至少間隔 3 根 K 棒，買賣衝突時不標記。</p>
-  </div>
-</div>
-
-<h2 id="local">本機執行</h2>
-<div class="card">
-  <h4>環境需求</h4>
-  <ul>
-    <li>Python 3.8+</li>
-    <li>安裝依賴：<code>pip install -r requirements.txt</code></li>
-  </ul>
-  <h4>啟動</h4>
-  <pre>cd "D:/python程式開發/飆股篩選器-OK"
-python app.py</pre>
-  <p>開啟瀏覽器 <code>http://localhost:5000</code></p>
-  <h4>主要依賴</h4>
-  <ul>
-    <li><code>flask</code> — Web 框架</li>
-    <li><code>yfinance</code> — Yahoo Finance 歷史數據</li>
-    <li><code>pandas / numpy</code> — 數據分析計算</li>
-    <li><code>requests</code> — 證交所/櫃買中心 API</li>
-    <li><code>gunicorn</code> — 生產環境 WSGI 伺服器</li>
-  </ul>
-</div>
-
-<h2 id="render">雲端部署（Render）</h2>
-<div class="card">
-  <h4>費用</h4>
-  <table>
-    <tr><th>方案</th><th>費用</th><th>特點</th></tr>
-    <tr><td>Free</td><td>$0</td><td>15 分鐘無人用會休眠，喚醒需 30 秒</td></tr>
-    <tr><td>Starter</td><td>$7/月 (~NT$220)</td><td>不休眠，推薦長期使用</td></tr>
-  </table>
-  <h4>部署步驟</h4>
-  <ol>
-    <li>建立 GitHub 帳號，建立 Private 倉庫 <code>stock-screener</code></li>
-    <li>將程式碼推送到 GitHub：
-      <pre>git init
-git add .
-git commit -m "飆股篩選器 v3.0"
-git remote add origin https://github.com/YOUR_USERNAME/stock-screener.git
-git push -u origin main</pre>
-    </li>
-    <li>到 Render.com 用 GitHub 登入</li>
-    <li>New → Web Service，選擇倉庫</li>
-    <li>設定：
-      <ul>
-        <li>Region: Singapore</li>
-        <li>Runtime: Python 3</li>
-        <li>Build: <code>pip install -r requirements.txt</code></li>
-        <li>Start: <code>gunicorn -c gunicorn_config.py app:app</code></li>
-      </ul>
-    </li>
-    <li>Create Web Service，等待 3~5 分鐘</li>
-    <li>得到網址如 <code>https://stock-screener-xxxx.onrender.com</code></li>
-  </ol>
-  <h4>之後更新</h4>
-  <pre>git add .
-git commit -m "更新說明"
-git push</pre>
-  <p>Render 自動偵測變更並重新部署（約 2~3 分鐘）。</p>
-</div>
-
-<h2 id="pwa">手機安裝（PWA）</h2>
-<div class="card">
-  <ol>
-    <li>手機瀏覽器開啟 Render 網址</li>
-    <li>Chrome 選單 → 「加入主畫面」</li>
-    <li>桌面出現 App 圖示，隨時可用</li>
-    <li>看起來跟原生 App 一模一樣</li>
-  </ol>
-</div>
-
-<h2 id="apk">APK 打包</h2>
-<div class="card">
-  <p>專案內 <code>build_apk/</code> 資料夾包含 Capacitor 打包設定，可產出 Android APK。</p>
-  <p>另有 Google Play 和 iOS 封裝套件可用於上架。</p>
-</div>
-
-<h2 id="faq">常見問題</h2>
-<div class="card">
-  <h4>Q: 免費方案夠用嗎？</h4>
-  <p>A: 收盤後看結果可用免費的。盤中即時更新需要服務不休眠，建議 Starter ($7/月)。</p>
-  <h4>Q: 手機不用裝 App？</h4>
-  <p>A: 對，用 PWA「加入主畫面」功能，看起來跟 App 一模一樣。</p>
-  <h4>Q: 資料會不會外洩？</h4>
-  <p>A: GitHub 設為 Private，Render 有 HTTPS 加密，安全無虞。</p>
-  <h4>Q: 可以多人一起用嗎？</h4>
-  <p>A: 可以，分享網址就能用。Starter 方案同時 10~20 人沒問題。</p>
-  <h4>Q: 可以自訂網域嗎？</h4>
-  <p>A: 可以。在 Render 設定 Custom Domain，DNS 加 CNAME 記錄指向 Render 即可。</p>
-</div>
-
-<h2 id="tech">技術架構</h2>
-<div class="card">
-  <table>
-    <tr><th>項目</th><th>技術</th></tr>
-    <tr><td>後端框架</td><td>Flask (Python)</td></tr>
-    <tr><td>股票數據</td><td>證交所 OpenAPI + 櫃買中心 API + Yahoo Finance</td></tr>
-    <tr><td>技術指標計算</td><td>pandas + numpy</td></tr>
-    <tr><td>並行處理</td><td>ThreadPoolExecutor（多線程加速分析）</td></tr>
-    <tr><td>前端</td><td>HTML + JavaScript（PWA）</td></tr>
-    <tr><td>生產伺服器</td><td>Gunicorn</td></tr>
-    <tr><td>部署平台</td><td>Render</td></tr>
-    <tr><td>快取</td><td>本地 .cache 資料夾</td></tr>
-  </table>
-  <h4>專案結構</h4>
-  <pre>飆股篩選器-OK/
-├── app.py                ← Flask Web 應用 + API
-├── stock_screener.py     ← 核心篩選邏輯 + 技術指標計算
-├── templates/
-│   └── index.html        ← 前端 UI
-├── static/               ← CSS / JS / 圖示
-├── gunicorn_config.py    ← Gunicorn 設定
-├── requirements.txt      ← Python 依賴
-├── render.yaml           ← Render 部署設定
-├── Procfile              ← 啟動指令
-├── build_apk/            ← APK 打包設定
-├── DEPLOY.md             ← 部署教學
-├── deploy_to_github.bat  ← 一鍵推 GitHub
-└── update_and_push.bat   ← 一鍵更新推送</pre>
-</div>
-
-</main>
-</div>
-<script>
-document.querySelectorAll('.sidebar nav a').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const id = link.getAttribute('href').slice(1);
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-    link.classList.add('active');
-  });
-});
-</script>
 </body>
 </html>

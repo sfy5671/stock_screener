@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0a1628">
+<meta name="theme-color" content="#f8fafc">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/static/manifest.json">
@@ -20,18 +20,18 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        bg:    '#0a1628',
-        bg2:   '#0f1d33',
-        card:  '#14233d',
-        card2: '#1a2c4e',
-        dim:   '#2a3e5e',
-        gold:  '#d4af37',
-        goldd: '#b8941f',
-        rise:  '#ef4444',
-        fall:  '#22c55e',
-        textd: '#e2e8f0',
-        textm: '#94a3b8',
-        textl: '#64748b',
+        bg:    '#dbe3ef',
+        bg2:   '#f8fafc',
+        card:  '#ffffff',
+        card2: '#f1f5f9',
+        dim:   '#e2e8f0',
+        gold:  '#1d4ed8',
+        goldd: '#1e40af',
+        rise:  '#dc2626',
+        fall:  '#16a34a',
+        textd: '#0f172a',
+        textm: '#475569',
+        textl: '#94a3b8',
       },
       fontFamily: {
         sans: ['Noto Sans TC', 'Inter', 'system-ui', 'sans-serif'],
@@ -42,60 +42,63 @@ tailwind.config = {
 }
 </script>
 <style>
-  body { background:#0a1628; color:#e2e8f0; font-family:'Noto Sans TC','Inter',sans-serif; }
+  body { background:linear-gradient(165deg,#dde6f2 0%,#c8d5e8 55%,#b6c6de 100%) fixed; color:#0f172a; font-family:'Noto Sans TC','Inter',sans-serif; }
   .num { font-family:'JetBrains Mono','Roboto Mono',monospace; font-variant-numeric:tabular-nums; }
-  .tab-active { color:#d4af37 !important; border-color:#d4af37 !important; }
-  .card-glow { box-shadow:0 0 18px rgba(212,175,55,.15), 0 0 6px rgba(212,175,55,.08); }
-  .gradient-gold { background:linear-gradient(135deg,#d4af37 0%,#f5d76e 50%,#d4af37 100%); }
-  .gradient-gold:hover { background:linear-gradient(135deg,#e0c14a 0%,#fae27e 50%,#e0c14a 100%); }
-  .spin { display:inline-block;width:16px;height:16px;border:2px solid rgba(212,175,55,.3);border-top-color:#d4af37;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:6px; }
+  .tab-active { color:#1d4ed8 !important; border-color:#1d4ed8 !important; }
+  .card-glow { box-shadow:0 0 0 1px rgba(29,78,216,.18), 0 4px 20px rgba(29,78,216,.10); }
+  .gradient-gold { background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 50%,#1d4ed8 100%); color:#fff; }
+  .gradient-gold:hover { background:linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#1e40af 100%); color:#fff; }
+  .spin { display:inline-block;width:16px;height:16px;border:2px solid rgba(29,78,216,.25);border-top-color:#1d4ed8;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:6px; }
   @keyframes sp { to { transform:rotate(360deg); } }
   /* Pills for indicators */
   .pill { display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:999px;font-weight:600; }
   .pill-num { font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums; }
-  .pill-neutral { background:rgba(148,163,184,.12); color:#cbd5e1; border:1px solid rgba(148,163,184,.25); }
-  .pill-strong  { background:rgba(239,68,68,.15);  color:#fca5a5; border:1px solid rgba(239,68,68,.35); }
-  .pill-good    { background:rgba(34,197,94,.13);  color:#86efac; border:1px solid rgba(34,197,94,.35); }
-  .pill-warn    { background:rgba(212,175,55,.13); color:#facc15; border:1px solid rgba(212,175,55,.35); }
-  .pill-dim     { background:rgba(100,116,139,.08); color:#64748b; border:1px solid rgba(100,116,139,.18); }
+  .pill-neutral { background:rgba(100,116,139,.10); color:#475569; border:1px solid rgba(100,116,139,.22); }
+  .pill-strong  { background:rgba(220,38,38,.09);  color:#b91c1c; border:1px solid rgba(220,38,38,.28); }
+  .pill-good    { background:rgba(22,163,74,.09);  color:#15803d; border:1px solid rgba(22,163,74,.28); }
+  .pill-warn    { background:rgba(217,119,6,.09);  color:#b45309; border:1px solid rgba(217,119,6,.30); }
+  .pill-dim     { background:rgba(148,163,184,.12); color:#94a3b8; border:1px solid rgba(148,163,184,.25); }
   /* Strategy chip */
   .chip { font-size:11px; padding:4px 10px; border-radius:6px; font-weight:600; white-space:nowrap; }
-  .chip-on { background:rgba(212,175,55,.13); color:#d4af37; border:1px solid rgba(212,175,55,.45); }
-  .chip-off { background:transparent; color:#475569; border:1px solid #334155; }
+  .chip-on  { background:rgba(29,78,216,.10); color:#1d4ed8; border:1px solid rgba(29,78,216,.30); }
+  .chip-off { background:transparent; color:#94a3b8; border:1px solid #e2e8f0; }
   /* Scrollbar */
   ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-track { background:#0a1628; }
-  ::-webkit-scrollbar-thumb { background:#2a3e5e; border-radius:3px; }
+  ::-webkit-scrollbar-track { background:#f1f5f9; }
+  ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
   /* Search dropdown */
-  .search-results { position:absolute;top:100%;left:0;right:0;background:#14233d;border:1px solid #2a3e5e;border-top:none;border-radius:0 0 12px 12px;max-height:240px;overflow-y:auto;z-index:50;display:none;}
+  .search-results { position:absolute;top:100%;left:0;right:0;background:#ffffff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;max-height:240px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.10);}
   .search-results.show { display:block; }
-  .sr-item { padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;font-size:14px;border-bottom:1px solid rgba(255,255,255,.04);}
-  .sr-item:hover { background:#1a2c4e; }
-  .sr-item .code { color:#d4af37;font-weight:600;font-family:'JetBrains Mono',monospace; }
-  .sr-item .name { color:#94a3b8; }
+  .sr-item { padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;font-size:14px;border-bottom:1px solid rgba(0,0,0,.04);}
+  .sr-item:hover { background:#f1f5f9; }
+  .sr-item .code { color:#1d4ed8;font-weight:600;font-family:'JetBrains Mono',monospace; }
+  .sr-item .name { color:#475569; }
   /* Progress bar */
-  .prog { width:100%;height:4px;background:#1a2c4e;border-radius:3px;overflow:hidden;display:none;margin-top:12px;}
+  .prog { width:100%;height:3px;background:#e2e8f0;border-radius:3px;overflow:hidden;display:none;margin-top:12px;}
   .prog.on { display:block; }
-  .prog-fill { height:100%;background:linear-gradient(90deg,#d4af37,#f5d76e);width:0;transition:width .3s;}
+  .prog-fill { height:100%;background:linear-gradient(90deg,#1d4ed8,#3b82f6);width:0;transition:width .3s;}
   /* Card hover */
-  .stock-card { transition:.2s; cursor:pointer; }
-  .stock-card:hover { border-color:rgba(212,175,55,.5); transform:translateY(-1px); }
+  .stock-card { transition:.15s; cursor:pointer; box-shadow:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04); }
+  .stock-card:hover { border-color:rgba(29,78,216,.35); transform:translateY(-1px); box-shadow:0 4px 16px rgba(29,78,216,.08); }
   /* Modal */
-  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+  .modal-overlay { position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
   .modal-overlay.show { display:flex; }
   /* Hide arrows on number input */
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
   input[type=number] { -moz-appearance:textfield; }
+  /* AI Modal content */
+  .ai-analysis-text { white-space:pre-wrap; line-height:1.75; font-size:14px; color:#1e293b; }
+  .ai-analysis-text strong { color:#1d4ed8; font-weight:700; }
 </style>
 </head>
 <body class="min-h-screen pt-[108px]">
 
 <!-- 固定頂部 -->
-<header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-bg2 to-bg border-b border-dim/60 backdrop-blur">
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/95 border-b border-dim backdrop-blur shadow-sm">
   <div class="max-w-[1100px] mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
     <div class="flex items-baseline gap-2">
-      <h1 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold to-yellow-200">飆股篩選器</h1>
+      <h1 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold to-blue-400">飆股篩選器</h1>
       <span class="text-xs text-textm">v3.1</span>
     </div>
     <div class="flex items-center gap-3">
@@ -110,6 +113,7 @@ tailwind.config = {
       <button onclick="switchTab('dashboard')" data-tab-btn="dashboard" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition tab-active">儀表</button>
       <button onclick="switchTab('screen')" data-tab-btn="screen" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">篩選</button>
       <button onclick="switchTab('favorites')" data-tab-btn="favorites" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">★ 收藏</button>
+      <button onclick="switchTab('watchlist')" data-tab-btn="watchlist" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">自選股</button>
       <button onclick="switchTab('market')" data-tab-btn="market" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">大盤</button>
       <button onclick="switchTab('chart')" data-tab-btn="chart" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">K 線</button>
       <button onclick="switchTab('info')" data-tab-btn="info" class="tab-btn flex-1 py-2.5 text-xs md:text-sm font-medium text-textm border-b-2 border-transparent transition">說明</button>
@@ -439,6 +443,37 @@ tailwind.config = {
   </div>
 </section>
 
+<!-- ============ TAB: 我的自選股 ============ -->
+<section data-tab-panel="watchlist" class="tab-panel space-y-5 hidden">
+  <div class="bg-card border border-dim rounded-2xl p-5 shadow-sm">
+    <div class="flex items-start justify-between mb-4 flex-wrap gap-3">
+      <div>
+        <h2 class="text-base font-semibold flex items-center gap-2 text-textd">🤖 我的自選股</h2>
+        <p class="text-xs text-textm mt-1">這裡的股票，每天盤後會自動 AI 判讀並推播到你的 Telegram</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="importFromFavorites()" class="text-xs px-3 py-1.5 rounded-lg border border-dim bg-card2 hover:border-gold/60 text-textm transition">★ 從收藏匯入</button>
+        <span id="wlCount" class="text-xs px-3 py-1.5 rounded-lg bg-gold/10 text-gold border border-gold/25 num font-semibold">0 檔</span>
+      </div>
+    </div>
+
+    <!-- 搜尋加入 -->
+    <div class="relative mb-4">
+      <div class="flex gap-2">
+        <input id="wlSearchInp" placeholder="輸入股票代號或名稱搜尋加入" autocomplete="off"
+          class="flex-1 bg-card2 border border-dim rounded-xl px-4 py-2.5 text-sm focus:border-gold outline-none text-textd placeholder:text-textl transition">
+        <button onclick="wlSearchClear()" class="px-4 py-2.5 rounded-xl border border-dim text-textm text-sm hover:border-gold/40 transition">清除</button>
+      </div>
+      <div id="wlSearchDrop" class="search-results"></div>
+    </div>
+
+    <!-- 清單 -->
+    <div id="wlList" class="space-y-2">
+      <div class="text-center py-10 text-textm text-sm">載入中...</div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ TAB: K 線圖 ============ -->
 <section data-tab-panel="chart" class="tab-panel space-y-5 hidden">
   <div class="bg-card border border-dim/60 rounded-2xl p-5">
@@ -590,6 +625,34 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- AI 判讀 Modal -->
+<div class="modal-overlay" id="aiModal">
+  <div class="bg-card border border-dim rounded-2xl w-full max-w-2xl max-h-[88vh] overflow-hidden flex flex-col shadow-xl">
+    <div class="px-5 py-4 border-b border-dim flex items-center justify-between bg-gradient-to-r from-blue-50 to-white">
+      <h3 id="aiModalTitle" class="font-semibold text-textd flex items-center gap-2">🤖 AI 判讀</h3>
+      <button onclick="closeAIModal()" class="w-8 h-8 rounded-full bg-card2 hover:bg-red-50 hover:text-red-500 text-lg text-textm transition">&times;</button>
+    </div>
+    <div id="aiModalBody" class="overflow-auto p-5 flex-1">
+      <div class="text-center py-8 text-textm text-sm">
+        <span class="spin"></span>分析中，約需 5~15 秒…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 個股快覽 Modal（自選股點擊跳出） -->
+<div class="modal-overlay" id="stockInfoModal">
+  <div class="bg-card border border-dim rounded-2xl w-full max-w-lg max-h-[88vh] overflow-hidden flex flex-col shadow-xl">
+    <div class="px-5 py-4 border-b border-dim flex items-center justify-between bg-gradient-to-r from-blue-50 to-white">
+      <h3 id="siTitle" class="font-semibold text-textd flex items-center gap-2">📋 個股快覽</h3>
+      <button onclick="closeStockInfo()" class="w-8 h-8 rounded-full bg-card2 hover:bg-red-50 hover:text-red-500 text-lg text-textm transition">&times;</button>
+    </div>
+    <div id="siBody" class="overflow-auto p-5 flex-1">
+      <div class="text-center py-8 text-textm text-sm"><span class="spin"></span>載入中…</div>
+    </div>
+  </div>
+</div>
+
 <!-- K 線 Modal（從結果點進去的備用） -->
 <div class="modal-overlay" id="chartModal">
   <div class="bg-card border border-dim rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -735,10 +798,12 @@ function renderTags() {
     return;
   }
   el.innerHTML = stocks.map((s,i) =>
-    `<span class="inline-flex items-center gap-1.5 bg-card2 border border-dim rounded-md px-2.5 py-1 text-xs">
-      <span class="num text-gold font-semibold">${s.code}</span>
-      <span class="text-textd">${s.name}</span>
-      <span class="text-textl hover:text-rise cursor-pointer ml-1" onclick="stocks.splice(${i},1);renderTags();saveLocal()">×</span>
+    `<span class="inline-flex items-center gap-1.5 bg-card2 border border-dim rounded-md px-2.5 py-1 text-xs hover:border-gold/50 transition">
+      <span class="cursor-pointer inline-flex items-center gap-1.5" onclick="openStockInfo('${s.code}','${s.name.replace(/'/g,'&#39;')}')">
+        <span class="num text-gold font-semibold">${s.code}</span>
+        <span class="text-textd">${s.name}</span>
+      </span>
+      <span class="text-textl hover:text-rise cursor-pointer ml-1" onclick="event.stopPropagation();stocks.splice(${i},1);renderTags();saveLocal()">×</span>
     </span>`).join('');
 }
 
@@ -781,7 +846,7 @@ async function loadHotStocks() {
   let added=0;
   hot.forEach(s=>{if(!existing.has(s.code)){stocks.push(s);added++}});
   renderTags(); saveLocal();
-  alert('已載入 '+added+' 檔熱門股票');
+  if (added) console.log('已載入 '+added+' 檔熱門股票');
 }
 
 // ============================================================
@@ -1009,7 +1074,7 @@ function renderCards(results) {
     const inCompare = compareSelected.has(r.code);
     const cmpCheckbox = compareMode ? `<input type="checkbox" ${inCompare?'checked':''} onclick="event.stopPropagation();toggleCompareSelect('${r.code}','${r.name.replace(/'/g, '&#39;')}',this)" class="accent-gold w-4 h-4 flex-shrink-0" title="加入對比">` : '';
     return `
-    <div class="stock-card bg-card2/40 border border-dim rounded-2xl overflow-hidden ${hot?'card-glow':''} ${inCompare?'border-gold':''}" onclick="goToChart('${r.code}','${r.name}')">
+    <div class="stock-card bg-card2/40 border border-dim rounded-2xl overflow-hidden ${hot?'card-glow':''} ${inCompare?'border-gold':''}" onclick="openStockInfo('${r.code}','${r.name.replace(/'/g,'&#39;')}')">
       <div class="h-1 w-full ${stripCls}"></div>
       <div class="p-4">
         <!-- 頂部：名稱+價格+得分 -->
@@ -1022,6 +1087,7 @@ function renderCards(results) {
               ${r.industry?`<span class="text-[10px] px-1.5 py-0.5 rounded bg-card2 text-textm border border-dim">${r.industry}</span>`:''}
               ${hot?'<span class="text-[10px] font-bold bg-rise/20 text-rise px-2 py-0.5 rounded">HOT</span>':''}
               <button onclick="event.stopPropagation();toggleFavorite('${r.code}','${r.name.replace(/'/g, '&#39;')}',this)" class="ml-auto text-base px-1 leading-none ${isFav?'text-gold':'text-textl'} hover:text-gold transition" title="${isFav?'移除收藏':'加入收藏'}">${isFav?'★':'☆'}</button>
+              <button onclick="event.stopPropagation();showAIAnalysis('${r.code}','${r.name.replace(/'/g, '&#39;')}')" class="text-[11px] px-2 py-0.5 rounded-md border border-gold/40 text-gold bg-gold/8 hover:bg-gold/15 transition font-semibold flex-shrink-0" title="AI 判讀">🤖 AI</button>
             </div>
             <div class="flex items-baseline gap-2 flex-wrap">
               <span class="num text-2xl md:text-3xl font-bold text-textd">${r.price!=null?fmtNum(r.price):'-'}</span>
@@ -1915,7 +1981,7 @@ async function exportPNG() {
   btn.disabled = true;
   try {
     const canvas = await html2canvas(el, {
-      backgroundColor: '#0a1628',
+      backgroundColor: '#f1f5f9',
       scale: 2,
       useCORS: true,
     });
@@ -2042,6 +2108,7 @@ switchTab = function(name) {
   _origSwitchTab(name);
   if (name === 'favorites') refreshFavorites();
   if (name === 'dashboard') renderDashboard();
+  if (name === 'watchlist') loadWatchlist();
 };
 
 // 預設先載入儀表板
@@ -2051,10 +2118,212 @@ renderDashboard();
 (function handleInitialTab() {
   const params = new URLSearchParams(location.search);
   const tab = params.get('tab');
-  if (tab && ['dashboard','screen','favorites','market','chart','info'].includes(tab)) {
+  if (tab && ['dashboard','screen','favorites','watchlist','market','chart','info'].includes(tab)) {
     switchTab(tab);
   }
 })();
+
+// ============================================================
+//  AI 判讀 Modal
+// ============================================================
+function showAIAnalysis(code, name) {
+  const modal = document.getElementById('aiModal');
+  document.getElementById('aiModalTitle').textContent = `🤖 AI 判讀：${name}（${code}）`;
+  document.getElementById('aiModalBody').innerHTML = `
+    <div class="flex items-center gap-2 text-textm text-sm py-8 justify-center">
+      <span class="spin"></span>分析中，約需 5～15 秒…
+    </div>`;
+  modal.classList.add('show');
+
+  fetch('/api/ai-analyze/' + encodeURIComponent(code) + '?name=' + encodeURIComponent(name))
+    .then(res => res.json())
+    .then(d => {
+      if (!d.ok) throw new Error(d.error || '分析失敗');
+      // 把 **粗體** 轉成 <strong>
+      const html = d.text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      document.getElementById('aiModalBody').innerHTML = `
+        <div class="ai-analysis-text">${html}</div>`;
+    })
+    .catch(err => {
+      document.getElementById('aiModalBody').innerHTML = `
+        <div class="text-red-500 text-sm py-6 text-center">分析失敗：${err.message}</div>`;
+    });
+}
+
+function closeAIModal() {
+  document.getElementById('aiModal').classList.remove('show');
+}
+document.getElementById('aiModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAIModal();
+});
+
+// ============================================================
+//  我的自選股 (Watchlist) — 每天盤後自動 Telegram 推播
+// ============================================================
+let watchlistData = [];  // [{code, name}]
+
+async function loadWatchlist() {
+  const listEl = document.getElementById('wlList');
+  listEl.innerHTML = `<div class="text-center py-6 text-textm text-sm"><span class="spin"></span>載入中…</div>`;
+  try {
+    const r = await fetch('/api/watchlist');
+    const d = await r.json();
+    watchlistData = d.watchlist || [];
+  } catch(e) {
+    watchlistData = [];
+  }
+  renderWatchlist();
+  setupSearch('wlSearchInp', 'wlSearchDrop', addToWatchlist);
+  updateWlCount();
+}
+
+async function saveWatchlist() {
+  try {
+    await fetch('/api/watchlist', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({watchlist: watchlistData})
+    });
+  } catch(e) {}
+  updateWlCount();
+}
+
+function updateWlCount() {
+  const el = document.getElementById('wlCount');
+  if (el) el.textContent = watchlistData.length + ' 檔';
+}
+
+function addToWatchlist(code, name) {
+  if (watchlistData.some(w => w.code === code)) return;
+  watchlistData.push({code, name});
+  saveWatchlist();
+  renderWatchlist();
+}
+
+function removeFromWatchlist(code) {
+  watchlistData = watchlistData.filter(w => w.code !== code);
+  saveWatchlist();
+  renderWatchlist();
+}
+
+function renderWatchlist() {
+  const el = document.getElementById('wlList');
+  if (!el) return;
+  if (!watchlistData.length) {
+    el.innerHTML = `
+      <div class="text-center py-12 text-textm">
+        <div class="text-4xl mb-3">🔍</div>
+        <p class="text-sm">自選股清單是空的</p>
+        <p class="text-xs text-textl mt-1">用上方搜尋欄加入，或從「★ 從收藏匯入」</p>
+      </div>`;
+    return;
+  }
+  el.innerHTML = watchlistData.map((w, i) => `
+    <div class="flex items-center gap-3 bg-card2/60 border border-dim rounded-xl px-4 py-3 hover:border-gold/40 transition group">
+      <div class="w-6 h-6 rounded-full bg-gold/10 text-gold text-[11px] flex items-center justify-center font-bold num flex-shrink-0">${i+1}</div>
+      <div class="min-w-0 flex-1 cursor-pointer" onclick="openStockInfo('${w.code}','${w.name.replace(/'/g,"&#39;")}')">
+        <div class="font-semibold text-textd text-sm">${w.name}</div>
+        <div class="num text-xs text-gold">${w.code}</div>
+      </div>
+      <button onclick="showAIAnalysis('${w.code}','${w.name.replace(/'/g,"&#39;")}')"
+        class="text-[11px] px-2.5 py-1 rounded-lg border border-gold/40 text-gold bg-gold/8 hover:bg-gold/15 transition font-semibold flex-shrink-0">
+        🤖 AI判讀
+      </button>
+      <button onclick="removeFromWatchlist('${w.code}')"
+        class="w-7 h-7 rounded-full border border-dim text-textl hover:border-red-300 hover:text-red-500 text-base flex items-center justify-center transition flex-shrink-0 opacity-0 group-hover:opacity-100">
+        ×
+      </button>
+    </div>`).join('');
+}
+
+function wlSearchClear() {
+  const inp = document.getElementById('wlSearchInp');
+  const drop = document.getElementById('wlSearchDrop');
+  if (inp) inp.value = '';
+  if (drop) { drop.innerHTML = ''; drop.classList.remove('show'); }
+}
+
+function importFromFavorites() {
+  if (!favorites.length) { alert('收藏清單是空的，先從篩選結果加 ★'); return; }
+  let added = 0;
+  favorites.forEach(f => {
+    if (!watchlistData.some(w => w.code === f.code)) {
+      watchlistData.push({code: f.code, name: f.name});
+      added++;
+    }
+  });
+  if (!added) { alert('收藏中的股票都已在自選股清單中'); return; }
+  saveWatchlist();
+  renderWatchlist();
+  alert(`已匯入 ${added} 檔`);
+}
+
+// ============================================================
+//  個股快覽 Modal（自選股點擊 → 報價+技術指標+動作）
+// ============================================================
+function siRow(label, val) {
+  return `<div class="flex justify-between bg-card2/60 border border-dim rounded-lg px-3 py-2">
+    <span class="text-textm">${label}</span><span class="num text-textd font-semibold">${val}</span></div>`;
+}
+
+function openStockInfo(code, name) {
+  const modal = document.getElementById('stockInfoModal');
+  document.getElementById('siTitle').innerHTML = `📋 ${name} <span class="num text-gold text-sm ml-1">${code}</span>`;
+  document.getElementById('siBody').innerHTML = `<div class="text-center py-8 text-textm text-sm"><span class="spin"></span>載入中…</div>`;
+  modal.classList.add('show');
+
+  fetch('/api/screen', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({stocks: [{code, name}], mode: 'momentum', top_n: 0})
+  })
+    .then(r => r.json())
+    .then(d => {
+      const s = (d.results || [])[0];
+      if (!s) {
+        document.getElementById('siBody').innerHTML = `<div class="text-center py-8 text-textm text-sm">查無資料（可能非交易股或暫無報價）</div>`;
+        return;
+      }
+      const fmt = (v, dp=2) => (v===null || v===undefined || isNaN(v)) ? '—' : Number(v).toFixed(dp);
+      const up = (s.change_pct || 0) >= 0;
+      const col = up ? 'text-rise' : 'text-fall';
+      const sign = up ? '+' : '';
+      const lots = (s.foreign_net!==null && s.foreign_net!==undefined) ? Math.round(s.foreign_net/1000) : null;
+      const nm = name.replace(/'/g,"&#39;");
+      document.getElementById('siBody').innerHTML = `
+        <div class="text-center mb-4">
+          <div class="num text-4xl font-bold ${col}">${fmt(s.price)}</div>
+          <div class="num text-sm ${col} mt-1">${sign}${fmt(s.change_pct)}%</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+          ${siRow('週漲跌', fmt(s.week_change)+'%')}
+          ${siRow('月漲跌', fmt(s.month_change)+'%')}
+          ${siRow('RSI', fmt(s.rsi,1))}
+          ${siRow('KD', fmt(s.k,1)+' / '+fmt(s.d,1))}
+          ${siRow('MA5', fmt(s.ma5))}
+          ${siRow('MA20', fmt(s.ma20))}
+          ${siRow('MA60', fmt(s.ma60))}
+          ${siRow('量能比', fmt(s.vol_ratio))}
+          ${siRow('外資買賣超', lots!==null ? (lots>=0?'+':'')+lots+' 張' : '—')}
+          ${siRow('本益比', fmt(s.pe))}
+        </div>
+        <div class="flex gap-2">
+          <button onclick="closeStockInfo();showAIAnalysis('${code}','${nm}')" class="flex-1 py-2.5 rounded-xl gradient-gold text-sm font-semibold">🤖 AI 判讀</button>
+          <button onclick="closeStockInfo();goToChart('${code}','${nm}')" class="flex-1 py-2.5 rounded-xl border border-dim text-textd text-sm font-semibold hover:border-gold/50 transition">📈 看 K 線</button>
+        </div>`;
+    })
+    .catch(() => {
+      document.getElementById('siBody').innerHTML = `<div class="text-center py-8 text-red-500 text-sm">載入失敗，請稍後再試</div>`;
+    });
+}
+
+function closeStockInfo() {
+  document.getElementById('stockInfoModal').classList.remove('show');
+}
+document.getElementById('stockInfoModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeStockInfo();
+});
 </script>
 </body>
 </html>

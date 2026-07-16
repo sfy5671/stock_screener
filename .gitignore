@@ -3,12 +3,21 @@ __pycache__/
 .cache/*
 *.egg-info/
 .env
+venv/
+.venv/
 
 # 例外：每日預抓的「公開資料」要 commit 進 repo，讓 Render 線上版能讀
 !.cache/basic_indicators.json
 !.cache/company_capital.json
 !.cache/inst_hist_5.json
 !.cache/margin.json
+
+# 每日戰報輸出（本機每天產生，不上 git；watchlist.json 與 report_config.json 保留以便跨機同步）
+daily_report/reports/
+*.log
+
+# Playwright 截圖
+.playwright-mcp/
 
 # Store package zips / 編譯產物 不上 git
 *.zip
