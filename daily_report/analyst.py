@@ -19,6 +19,11 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 import stock_screener as ss
 
+try:
+    from daily_report import evidence
+except ImportError:      # 直接以 daily_report 為工作目錄執行時
+    import evidence
+
 # Claude API：只讀環境變數，不 hard-code（見記憶 anthropic-api-key）
 API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 API_URL = "https://api.anthropic.com/v1/messages"
@@ -32,19 +37,34 @@ SYSTEM_PROMPT = (
     "2. 數據不足時直說「資料不足」，不要硬掰。\n"
     "3. 全程繁體中文（台灣用語）。\n"
     "4. 結尾務必附一行風險提醒：本判讀為技術面資訊整理，非投資建議。\n"
-    "5. 控制長度：整份 250~400 字，適合手機閱讀。"
+    "5. 控制長度：整份 250~400 字，適合手機閱讀。\n"
+    "6. 【最重要】事實與推論必須分開寫，不可混在一起：\n"
+    "   ・「事實」= 我給你的數據直接讀得出來的（價格、均線位置、法人買賣超張數）。\n"
+    "   ・「推論」= 你的解讀與預判（會漲、會回檔、量縮代表洗盤）。\n"
+    "   推論一律要用「可能／傾向／研判」這類字眼，不可寫成肯定語氣。\n"
+    "7. 我會附上每個訊號的歷史回測勝率與超額報酬。**超額 ≤ 0 的訊號不准拿來當作看多理由**，\n"
+    "   若你要提到它，必須註明「此訊號回測無超額報酬」。沒有回測數據的訊號要說明「未經回測」。"
 )
 
 # 要求 Claude 用固定小標，方便 Telegram 呈現
 USER_TMPL = """請判讀以下個股，用這個格式（每項一行、精簡）：
 
 📊 {name}（{code}）
-定調：（一句話：多方/空方/整理，附信心強弱）
-均線：（5/20/60日多空排列，現價位置）
-量能：（放量/量縮，代表什麼）
-籌碼：（外資/投信近日動向）
-關卡：支撐 xxx／壓力 xxx
-操作：（觀察方向，含關鍵觀察價；非投資建議）
+
+【事實】（只寫數據讀得出來的，不加解讀）
+・價格：（現價、今日漲跌、週月漲幅）
+・均線：（5/20/60 日排列與現價位置）
+・量能：（今日量 vs 20 日均量倍數）
+・籌碼：（外資/投信買賣超張數與連續天數）
+
+【推論】（你的解讀，一律用「可能／傾向／研判」）
+・定調：（多方/空方/整理，附信心強弱）
+・理由：（根據哪幾項事實推出來的）
+・關卡：支撐 xxx／壓力 xxx
+
+【訊號體檢】（對照下方回測統計，誠實說這些訊號歷史上準不準）
+
+【觀察】（含關鍵觀察價；非投資建議）
 
 === 今日量化數據 ===
 現價 {price}｜漲跌 {change_pct}%｜週 {week_change}%｜月 {month_change}%
@@ -55,6 +75,10 @@ RSI {rsi}｜KD K{k}/D{d}｜MACD 柱 {osc}
 投信連續買超天數 {trust_consec}｜融資餘額 {margin_balance}｜融資增減 {margin_change}
 本益比 {pe}｜殖利率 {yield_}%｜產業 {industry}
 （momentum 策略符合 {score}/{total} 項）
+
+=== 今日觸發訊號的歷史回測（10 日持有）===
+{evidence}
+{evidence_warning}
 """
 
 
@@ -82,6 +106,7 @@ def build_context(code, name, df):
         return None, None
 
     prompt = USER_TMPL.format(
+        evidence=evidence.summarize(_sr), evidence_warning=evidence.weakest_warning(_sr),
         name=name, code=code,
         price=_fmt(d.get("price")), change_pct=_fmt(d.get("change_pct"), 2),
         week_change=_fmt(d.get("week_change"), 2), month_change=_fmt(d.get("month_change"), 2),

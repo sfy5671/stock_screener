@@ -26,7 +26,7 @@ echo.
 git add .cache/basic_indicators.json .cache/company_capital.json .cache/inst_hist_5.json .cache/margin.json
 
 REM 用日期當 commit 訊息
-for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set DT=%%I
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMddHHmmss"') do set DT=%%I
 set TODAY=%DT:~0,4%-%DT:~4,2%-%DT:~6,2%
 
 git commit -m "daily data refresh %TODAY%"

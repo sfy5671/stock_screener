@@ -9,7 +9,7 @@ set LOG=.cache\daily_refresh.log
 
 echo. >> "%LOG%"
 echo ============================================================ >> "%LOG%"
-for /f "tokens=2 delims==" %%I in ('"wmic os get localdatetime /value"') do set DT=%%I
+for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMddHHmmss"') do set DT=%%I
 set TODAY=%DT:~0,4%-%DT:~4,2%-%DT:~6,2%
 set NOW=%DT:~0,4%-%DT:~4,2%-%DT:~6,2% %DT:~8,2%:%DT:~10,2%:%DT:~12,2%
 echo  Stock Screener Auto Refresh  %NOW% >> "%LOG%"
